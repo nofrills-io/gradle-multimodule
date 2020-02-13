@@ -5,12 +5,15 @@ plugins {
 
 repositories {
     jcenter()
+    google()
 }
 
 dependencies {
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    implementation("com.android.tools.build:gradle:3.5.3") // TODO hard-coded version
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")

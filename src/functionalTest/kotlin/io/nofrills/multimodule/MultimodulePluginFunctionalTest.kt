@@ -15,23 +15,37 @@ class MultimodulePluginFunctionalTest {
     @Test fun `can run task`() {
         // Setup the test build
         val projectDir = File("build/functionalTest")
-        projectDir.mkdirs()
-        projectDir.resolve("settings.gradle").writeText("")
+        val libDir = File(projectDir, "lib")
+        libDir.mkdirs()
+
+        projectDir.resolve("settings.gradle").writeText("""
+            include(":lib")
+        """.trimIndent())
         projectDir.resolve("build.gradle").writeText("""
             plugins {
                 id('io.nofrills.multimodule')
             }
+            
+            multiconfig {
+                android {
+                }
+            }
         """)
+        libDir.resolve("build.gradle").writeText("""
+            multimodule {
+                moduleType = io.nofrills.multimodule.ModuleType.JAR
+            }
+        """.trimIndent())
 
         // Run the build
         val runner = GradleRunner.create()
         runner.forwardOutput()
         runner.withPluginClasspath()
-        runner.withArguments("greeting")
+        runner.withArguments("mminfo")
         runner.withProjectDir(projectDir)
         val result = runner.build();
 
         // Verify the result
-        assertTrue(result.output.contains("Hello from plugin 'io.nofrills.multimodule'"))
+//        assertTrue(result.output.contains("Hello from plugin 'io.nofrills.multimodule'"))
     }
 }

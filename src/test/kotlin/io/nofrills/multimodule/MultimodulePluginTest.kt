@@ -11,12 +11,16 @@ import kotlin.test.assertNotNull
  * A simple unit test for the 'io.nofrills.multimodule.greeting' plugin.
  */
 class MultimodulePluginTest {
-    @Test fun `plugin registers task`() {
-        // Create a test project and apply the plugin
-        val project = ProjectBuilder.builder().build()
-        project.plugins.apply("io.nofrills.multimodule")
+    @Test
+    fun `plugin registers task`() {
+        val rootProject = ProjectBuilder.builder()
+                .withName("root")
+                .build()
+        val project = ProjectBuilder.builder().withName("sub1").withParent(rootProject).build()
 
-        // Verify the result
-        assertNotNull(project.tasks.findByName("greeting"))
+        rootProject.plugins.apply("io.nofrills.multimodule")
+
+        assertNotNull(rootProject.extensions.findByName("multiconfig"))
+        assertNotNull(project.extensions.findByName("multimodule"))
     }
 }
