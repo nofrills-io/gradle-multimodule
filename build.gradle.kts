@@ -20,9 +20,21 @@ dependencies {
 }
 
 gradlePlugin {
-    val greeting by plugins.creating {
+    val multimodule by plugins.creating {
         id = "io.nofrills.multimodule"
         implementationClass = "io.nofrills.multimodule.MultimodulePlugin"
+    }
+    val aar by plugins.creating {
+        id = "io.nofrills.multimodule.aar"
+        implementationClass = "io.nofrills.multimodule.AarPlugin"
+    }
+    val apk by plugins.creating {
+        id = "io.nofrills.multimodule.apk"
+        implementationClass = "io.nofrills.multimodule.ApkPlugin"
+    }
+    val jar by plugins.creating {
+        id = "io.nofrills.multimodule.jar"
+        implementationClass = "io.nofrills.multimodule.JarPlugin"
     }
 }
 

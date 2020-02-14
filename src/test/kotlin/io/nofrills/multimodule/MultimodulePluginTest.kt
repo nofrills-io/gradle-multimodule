@@ -12,15 +12,9 @@ import kotlin.test.assertNotNull
  */
 class MultimodulePluginTest {
     @Test
-    fun `plugin registers task`() {
-        val rootProject = ProjectBuilder.builder()
-                .withName("root")
-                .build()
-        val project = ProjectBuilder.builder().withName("sub1").withParent(rootProject).build()
-
+    fun `plugin registers extension`() {
+        val rootProject = ProjectBuilder.builder().withName("root").build()
         rootProject.plugins.apply("io.nofrills.multimodule")
-
-        assertNotNull(rootProject.extensions.findByName("multiconfig"))
-        assertNotNull(project.extensions.findByName("multimodule"))
+        assertNotNull(rootProject.extensions.findByName("multimodule"))
     }
 }

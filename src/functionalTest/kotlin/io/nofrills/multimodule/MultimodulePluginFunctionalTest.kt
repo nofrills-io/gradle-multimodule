@@ -12,7 +12,8 @@ import kotlin.test.assertTrue
  * A simple functional test for the 'io.nofrills.multimodule' plugin.
  */
 class MultimodulePluginFunctionalTest {
-    @Test fun `can run task`() {
+    @Test
+    fun `can run task`() {
         // Setup the test build
         val projectDir = File("build/functionalTest")
         val libDir = File(projectDir, "lib")
@@ -23,17 +24,25 @@ class MultimodulePluginFunctionalTest {
         """.trimIndent())
         projectDir.resolve("build.gradle").writeText("""
             plugins {
-                id('io.nofrills.multimodule')
+                id("io.nofrills.multimodule")
             }
-            
-            multiconfig {
+            multimodule {
                 android {
+                    compileSdkVersion(28)
+
+                    buildTypes {
+                        create("mock") {
+                        }
+                        getByName("release") {
+                            minifyEnabled = false
+                        }
+                    }
                 }
             }
         """)
         libDir.resolve("build.gradle").writeText("""
-            multimodule {
-                moduleType = io.nofrills.multimodule.ModuleType.JAR
+            plugins {
+                id("io.nofrills.multimodule.aar")
             }
         """.trimIndent())
 
@@ -41,7 +50,7 @@ class MultimodulePluginFunctionalTest {
         val runner = GradleRunner.create()
         runner.forwardOutput()
         runner.withPluginClasspath()
-        runner.withArguments("mminfo")
+        runner.withArguments(":lib:tasks")
         runner.withProjectDir(projectDir)
         val result = runner.build();
 
