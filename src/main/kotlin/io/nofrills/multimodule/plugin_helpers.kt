@@ -4,10 +4,10 @@ import com.android.build.gradle.TestedExtension
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-internal fun applyAndroidPlugin(pluginId: String, target: Project) {
+internal fun applyAndroidPlugin(androidPluginId: String, target: Project) {
     val commonConfig = target.rootProject.extensions.getByType(MultimoduleExtension::class.java)
 
-    target.plugins.apply(pluginId)
+    target.plugins.apply(androidPluginId)
 
     configureCommonAndroid(target, commonConfig)
     configureKotlinTasks(target, commonConfig)
@@ -34,6 +34,7 @@ internal fun configureCommonAndroid(project: Project, commonConfig: MultimoduleE
 
 internal fun configureKotlinTasks(project: Project, commonConfig: MultimoduleExtension) {
     project.tasks.withType(KotlinCompile::class.java).configureEach {
-        commonConfig.kotlinAction?.execute(it.kotlinOptions)
+        val kotlinConfig = KotlinConfig(it.kotlinOptions)
+        commonConfig.kotlinAction?.execute(kotlinConfig)
     }
 }

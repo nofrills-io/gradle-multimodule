@@ -8,9 +8,6 @@ import org.gradle.testkit.runner.GradleRunner
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-/**
- * A simple functional test for the 'io.nofrills.multimodule' plugin.
- */
 class MultimodulePluginFunctionalTest {
     @Test
     fun `can run task`() {

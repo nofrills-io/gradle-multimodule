@@ -7,14 +7,22 @@ import org.gradle.testfixtures.ProjectBuilder
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 
-/**
- * A simple unit test for the 'io.nofrills.multimodule.greeting' plugin.
- */
 class MultimodulePluginTest {
     @Test
     fun `plugin registers extension`() {
         val rootProject = ProjectBuilder.builder().withName("root").build()
         rootProject.plugins.apply("io.nofrills.multimodule")
         assertNotNull(rootProject.extensions.findByName("multimodule"))
+    }
+
+    @Test
+    fun `apply aar plugin`() {
+        val rootProject = ProjectBuilder.builder().withName("root").build()
+        val project = ProjectBuilder.builder().withName("sub-project").withParent(rootProject).build()
+        rootProject.plugins.apply("io.nofrills.multimodule")
+        project.plugins.apply("io.nofrills.multimodule.aar")
+
+        assertNotNull(project.plugins.findPlugin("com.android.library"))
+        assertNotNull(project.plugins.findPlugin("org.jetbrains.kotlin.android"))
     }
 }

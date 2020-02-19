@@ -1,5 +1,6 @@
 plugins {
     `java-gradle-plugin`
+    `maven-publish`
     id("org.jetbrains.kotlin.jvm") version "1.3.61"
 }
 
@@ -13,7 +14,7 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
-    implementation("com.android.tools.build:gradle:3.5.3") // TODO hard-coded version
+    implementation("com.android.tools.build:gradle:3.5.3")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
@@ -54,4 +55,17 @@ val functionalTest by tasks.creating(Test::class) {
 val check by tasks.getting(Task::class) {
     // Run the functional tests as part of `check`
     dependsOn(functionalTest)
+}
+
+
+group = "io.nofrills"
+version = "0.1.0"
+
+publishing {
+    repositories {
+        maven {
+            name = "myRepo"
+            url = uri("file://${buildDir}/repo")
+        }
+    }
 }
