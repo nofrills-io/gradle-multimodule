@@ -1,10 +1,10 @@
 package io.nofrills.multimodule
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-class ApkPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        applyAndroidPlugin("com.android.application", target)
+class ApkPlugin : BasePlugin() {
+    override fun apply(project: Project) {
+        super.apply(project)
+        project.applyAndroidPlugin("com.android.application", shouldApplyKotlin)
     }
 }

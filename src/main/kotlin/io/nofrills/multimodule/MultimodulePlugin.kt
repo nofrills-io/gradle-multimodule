@@ -17,11 +17,8 @@ class MultimodulePlugin : Plugin<Project> {
             error("Multimodule plugin should be applied to root project.")
         }
 
-        // kotlin version
+        // configure dependencies
         // publishing via maven, gradle modules
-        // include kotlin std lib t(default)/f
-        // include common libraries (dagger, retrofit etc)
-        // manage version numbers
         // jacoco, detekt etc.
     }
 
@@ -34,8 +31,6 @@ abstract class MultimoduleExtension(project: Project) {
     internal var androidAction: Action<TestedExtension>? = null
     internal val javaConfig: JavaConfig = project.objects.newInstance(JavaConfig::class.java)
     internal var kotlinAction: Action<KotlinConfig>? = null
-
-    var kotlinVersion: String = KotlinVersion.CURRENT.toString()
 
     fun android(action: Action<TestedExtension>) {
         androidAction = action

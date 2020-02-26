@@ -1,21 +1,21 @@
 package io.nofrills.multimodule
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
 
-class JarPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        val commonConfig = target.rootProject.extensions.getByType(MultimoduleExtension::class.java)
+class JarPlugin : BasePlugin() {
+    override fun apply(project: Project) {
+        super.apply(project)
 
-        target.plugins.apply("java-library")
-        target.plugins.apply("org.jetbrains.kotlin.jvm")
-
-        target.extensions.getByType(JavaPluginExtension::class.java).apply {
-            sourceCompatibility = commonConfig.javaConfig.sourceCompatibility
-            targetCompatibility = commonConfig.javaConfig.targetCompatibility
+        project.plugins.apply("java-library")
+        project.extensions.getByType(JavaPluginExtension::class.java).apply {
+            sourceCompatibility = multimoduleExtensionInstance.javaConfig.sourceCompatibility
+            targetCompatibility = multimoduleExtensionInstance.javaConfig.targetCompatibility
         }
 
-        configureKotlinTasks(target, commonConfig)
+        if (shouldApplyKotlin) {
+            project.plugins.apply("org.jetbrains.kotlin.jvm")
+            project.configureKotlinTasks(multimoduleExtensionInstance)
+        }
     }
 }

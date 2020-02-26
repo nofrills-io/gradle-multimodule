@@ -26,7 +26,6 @@ class MultimodulePluginFunctionalTest {
             multimodule {
                 android {
                     compileSdkVersion(28)
-
                     buildTypes {
                         create("mock") {
                         }
@@ -35,6 +34,7 @@ class MultimodulePluginFunctionalTest {
                         }
                     }
                 }
+                kotlin {}
             }
         """)
         libDir.resolve("build.gradle").writeText("""
@@ -47,11 +47,13 @@ class MultimodulePluginFunctionalTest {
         val runner = GradleRunner.create()
         runner.forwardOutput()
         runner.withPluginClasspath()
-        runner.withArguments(":lib:tasks")
+        runner.withArguments(":lib:tasks", "--all")
         runner.withProjectDir(projectDir)
-        val result = runner.build();
+        val result = runner.build()
 
         // Verify the result
-//        assertTrue(result.output.contains("Hello from plugin 'io.nofrills.multimodule'"))
+        assertTrue(result.output.contains("compileDebugKotlin"))
+        assertTrue(result.output.contains("compileMockKotlin"))
+        assertTrue(result.output.contains("compileReleaseKotlin"))
     }
 }
