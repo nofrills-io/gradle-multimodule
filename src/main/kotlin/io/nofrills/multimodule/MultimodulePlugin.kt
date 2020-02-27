@@ -16,10 +16,6 @@ class MultimodulePlugin : Plugin<Project> {
         } else {
             error("Multimodule plugin should be applied to root project.")
         }
-
-        // configure dependencies
-        // publishing via maven, gradle modules
-        // jacoco, detekt etc.
     }
 
     private fun applyToRootProject(project: Project) {

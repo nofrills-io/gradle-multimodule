@@ -3,6 +3,7 @@
  */
 package io.nofrills.multimodule
 
+import org.gradle.testkit.runner.BuildResult
 import java.io.File
 import org.gradle.testkit.runner.GradleRunner
 import kotlin.test.Test
@@ -10,7 +11,44 @@ import kotlin.test.assertTrue
 
 class MultimodulePluginFunctionalTest {
     @Test
-    fun `can run task`() {
+    fun `additional build type`() {
+        val result = testCase("""
+            multimodule {
+                android {
+                    compileSdkVersion(28)
+                    buildTypes {
+                        create("mock") {
+                        }
+                        getByName("release") {
+                            minifyEnabled = false
+                        }
+                    }
+                }
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all"))
+
+        // Verify the result
+        assertTrue(result.output.contains("compileDebugJava"))
+        assertTrue(result.output.contains("compileMockJava"))
+        assertTrue(result.output.contains("compileReleaseJava"))
+    }
+
+    @Test
+    fun `with kotlin plugin`() {
+        val result = testCase("""
+            multimodule {
+                android {
+                    compileSdkVersion(28)
+                }
+                kotlin {}
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all"))
+
+        // Verify the result
+        assertTrue(result.output.contains("compileKotlin"))
+    }
+
+    private fun testCase(multimoduleConfig: String, submoduleBuildConfig: String, runnerArgs: List<String>): BuildResult {
         // Setup the test build
         val projectDir = File("build/functionalTest")
         val libDir = File(projectDir, "lib")
@@ -23,37 +61,16 @@ class MultimodulePluginFunctionalTest {
             plugins {
                 id("io.nofrills.multimodule")
             }
-            multimodule {
-                android {
-                    compileSdkVersion(28)
-                    buildTypes {
-                        create("mock") {
-                        }
-                        getByName("release") {
-                            minifyEnabled = false
-                        }
-                    }
-                }
-                kotlin {}
-            }
-        """)
-        libDir.resolve("build.gradle").writeText("""
-            plugins {
-                id("io.nofrills.multimodule.aar")
-            }
+            $multimoduleConfig
         """.trimIndent())
+        libDir.resolve("build.gradle").writeText(submoduleBuildConfig)
 
         // Run the build
         val runner = GradleRunner.create()
         runner.forwardOutput()
         runner.withPluginClasspath()
-        runner.withArguments(":lib:tasks", "--all")
+        runner.withArguments(runnerArgs)
         runner.withProjectDir(projectDir)
-        val result = runner.build()
-
-        // Verify the result
-        assertTrue(result.output.contains("compileDebugKotlin"))
-        assertTrue(result.output.contains("compileMockKotlin"))
-        assertTrue(result.output.contains("compileReleaseKotlin"))
+        return runner.build()
     }
 }
