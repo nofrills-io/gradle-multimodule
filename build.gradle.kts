@@ -14,7 +14,7 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
-    implementation("com.android.tools.build:gradle:3.5.3")
+    implementation("com.android.tools.build:gradle:3.6.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")

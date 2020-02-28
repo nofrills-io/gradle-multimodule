@@ -48,6 +48,50 @@ class MultimodulePluginFunctionalTest {
         assertTrue(result.output.contains("compileKotlin"))
     }
 
+    @Test
+    fun `with jar publishing`() {
+        val result = testCase("""
+            multimodule {
+                publish {}
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all"))
+
+        // Verify the result
+        assertTrue(result.output.contains("publish"))
+    }
+
+    @Test
+    fun `with jar publishing docs and sources`() {
+        val result = testCase("""
+            multimodule {
+                publish {
+                    withDocs = true
+                    withSources = true
+                }
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all"))
+
+        // Verify the result
+        assertTrue(result.output.contains("javadocJar"))
+        assertTrue(result.output.contains("sourcesJar"))
+        assertTrue(result.output.contains("publish"))
+    }
+
+    @Test
+    fun `with aar publishing`() {
+        val result = testCase("""
+            multimodule {
+                android {
+                    compileSdkVersion(28)
+                }
+                publish {}
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all"))
+
+        // Verify the result
+        assertTrue(result.output.contains("publish"))
+    }
+
     private fun testCase(multimoduleConfig: String, submoduleBuildConfig: String, runnerArgs: List<String>): BuildResult {
         // Setup the test build
         val projectDir = File("build/functionalTest")
