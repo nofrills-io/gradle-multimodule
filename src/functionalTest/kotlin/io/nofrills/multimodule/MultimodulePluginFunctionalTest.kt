@@ -34,7 +34,7 @@ class MultimodulePluginFunctionalTest {
     }
 
     @Test
-    fun `with kotlin plugin`() {
+    fun `kotlin plugin`() {
         val result = testCase("""
             multimodule {
                 android {
@@ -49,7 +49,7 @@ class MultimodulePluginFunctionalTest {
     }
 
     @Test
-    fun `with jar publishing`() {
+    fun `jar publishing`() {
         val result = testCase("""
             multimodule {
                 publish {}
@@ -61,35 +61,63 @@ class MultimodulePluginFunctionalTest {
     }
 
     @Test
-    fun `with jar publishing docs and sources`() {
+    fun `jar publishing with sources`() {
         val result = testCase("""
             multimodule {
                 publish {
-                    withDocs = true
                     withSources = true
                 }
             }
         """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all"))
 
         // Verify the result
-        assertTrue(result.output.contains("javadocJar"))
         assertTrue(result.output.contains("sourcesJar"))
         assertTrue(result.output.contains("publish"))
     }
 
     @Test
-    fun `with aar publishing`() {
+    fun `aar publishing`() {
         val result = testCase("""
             multimodule {
                 android {
                     compileSdkVersion(28)
+                    flavorDimensions "api"
+                    productFlavors {
+                        staging {
+                            dimension "api"
+                        }
+                        prod {
+                            dimension "api"
+                        }
+                    }
                 }
                 publish {}
             }
         """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all"))
 
         // Verify the result
-        assertTrue(result.output.contains("publish"))
+        assertTrue(result.output.contains("publishProdDebugPublicationToMavenLocal"))
+        assertTrue(result.output.contains("publishProdReleasePublicationToMavenLocal"))
+        assertTrue(result.output.contains("publishStagingDebugPublicationToMavenLocal"))
+        assertTrue(result.output.contains("publishStagingReleasePublicationToMavenLocal"))
+    }
+
+    @Test
+    fun `aar publishing with sources`() {
+        val result = testCase("""
+            multimodule {
+                android {
+                    compileSdkVersion(28)
+                }
+                publish {
+                    withSources = true
+                }
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all"))
+
+        // Verify the result
+        assertTrue(result.output.contains("publishDebugPublicationToMavenLocal"))
+        assertTrue(result.output.contains("publishReleasePublicationToMavenLocal"))
     }
 
     private fun testCase(multimoduleConfig: String, submoduleBuildConfig: String, runnerArgs: List<String>): BuildResult {

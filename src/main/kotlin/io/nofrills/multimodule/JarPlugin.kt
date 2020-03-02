@@ -23,14 +23,6 @@ class JarPlugin : BasePlugin() {
     }
 
     override fun applyPublications(project: Project, publishConfig: PublishConfig, publications: PublicationContainer) {
-        val javadocJarTaskProvider by lazy {
-            project.tasks.register("javadocJar", Jar::class.java) { jar ->
-                val javadocTaskProvider = project.tasks.named("javadoc")
-                jar.from(javadocTaskProvider)
-                jar.archiveClassifier.set("javadoc")
-            }
-        }
-
         val sourcesJarTaskProvider by lazy {
             project.tasks.register("sourcesJar", Jar::class.java) { jar ->
                 val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
@@ -41,9 +33,6 @@ class JarPlugin : BasePlugin() {
 
         publications.create(project.name, MavenPublication::class.java) { mavenPublication ->
             mavenPublication.from(project.components.getByName("java"))
-            if (publishConfig.withDocs) {
-                mavenPublication.artifact(javadocJarTaskProvider.get())
-            }
             if (publishConfig.withSources) {
                 mavenPublication.artifact(sourcesJarTaskProvider.get())
             }

@@ -63,6 +63,5 @@ open class JavaConfig {
 open class PublishConfig {
     var mavenPom: Action<MavenPom>? = null
     var repositories: Action<RepositoryHandler>? = null
-    var withDocs: Boolean = false
     var withSources: Boolean = false
 }
