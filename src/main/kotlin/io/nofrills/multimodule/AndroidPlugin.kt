@@ -10,7 +10,11 @@ import org.gradle.api.tasks.bundling.Jar
 abstract class AndroidPlugin : BasePlugin() {
     protected abstract val androidPluginId: String
 
-    override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
+    protected abstract fun getComponentNameForVariant(variant: BaseVariant): String
+    protected abstract fun getDefaultPublishVariant(project: Project): BaseVariant?
+    protected abstract fun getPublicationNameForVariant(variant: BaseVariant): String
+
+    final override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
         project.plugins.apply(PLUGIN_ID_KOTLIN_ANDROID)
         project.configureKotlinTasks(kotlinConfigAction)
         project.extensions.getByType(TestedExtension::class.java).apply {
@@ -22,7 +26,7 @@ abstract class AndroidPlugin : BasePlugin() {
         }
     }
 
-    override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
+    final override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
         project.plugins.apply(androidPluginId)
 
         project.extensions.getByType(TestedExtension::class.java).apply {
@@ -34,25 +38,29 @@ abstract class AndroidPlugin : BasePlugin() {
         }
     }
 
-    protected fun createPublicationForVariant(
+    final override fun applyPublications(
         project: Project,
         publishConfig: PublishConfig,
-        publications: PublicationContainer,
-        variant: BaseVariant,
-        componentName: String,
-        publicationName: String
+        publications: PublicationContainer
     ) {
-        val sourcesJarTaskProvider by lazy {
-            project.tasks.register("${variant.name}SourcesJar", Jar::class.java) { jar ->
-                jar.from(variant.sourceSets.map { it.javaDirectories })
-                jar.archiveClassifier.set("sources")
+        project.afterEvaluate {
+            val variant = getDefaultPublishVariant(project)
+            if (variant != null) {
+                val sourcesJarTaskProvider by lazy {
+                    project.tasks.register("${variant.name}SourcesJar", Jar::class.java) { jar ->
+                        jar.from(variant.sourceSets.map { it.javaDirectories })
+                        jar.archiveClassifier.set("sources")
+                    }
+                }
+
+                createPublication(
+                    project, publishConfig, publications, sourcesJarTaskProvider,
+                    componentName = getComponentNameForVariant(variant),
+                    publicationName = getPublicationNameForVariant(variant)
+                )
+            } else {
+                project.logger.warn("Cannot create publication for ${project}: default publish config not found (check 'android.defaultPublishConfig' setting).")
             }
         }
-
-        createPublication(
-            project, publishConfig, publications, sourcesJarTaskProvider,
-            componentName = componentName,
-            publicationName = publicationName
-        )
     }
 }

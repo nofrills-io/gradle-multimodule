@@ -90,6 +90,7 @@ class MultimodulePluginFunctionalTest {
             multimodule {
                 android {
                     compileSdkVersion(28)
+                    defaultPublishConfig("prodRelease")
                     flavorDimensions "api"
                     productFlavors {
                         staging {
@@ -106,10 +107,7 @@ class MultimodulePluginFunctionalTest {
         )
 
         // Verify the result
-        assertTrue(result.output.contains("publishProdDebugPublicationToMavenLocal"))
-        assertTrue(result.output.contains("publishProdReleasePublicationToMavenLocal"))
-        assertTrue(result.output.contains("publishStagingDebugPublicationToMavenLocal"))
-        assertTrue(result.output.contains("publishStagingReleasePublicationToMavenLocal"))
+        assertTrue(result.output.contains("publishProdReleaseAarPublicationToMavenLocal"))
     }
 
     @Test
@@ -128,8 +126,7 @@ class MultimodulePluginFunctionalTest {
         )
 
         // Verify the result
-        assertTrue(result.output.contains("publishDebugPublicationToMavenLocal"))
-        assertTrue(result.output.contains("publishReleasePublicationToMavenLocal"))
+        assertTrue(result.output.contains("publishReleaseAarPublicationToMavenLocal"))
     }
 
     @Test
@@ -146,8 +143,7 @@ class MultimodulePluginFunctionalTest {
         )
 
         // Verify the result
-        assertTrue(result.output.contains("publishDebugPublicationToMavenLocal"))
-        assertTrue(result.output.contains("publishReleasePublicationToMavenLocal"))
+        assertTrue(result.output.contains("publishReleaseApkPublicationToMavenLocal"))
     }
 
     private fun testCase(

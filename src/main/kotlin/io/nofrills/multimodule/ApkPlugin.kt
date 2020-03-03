@@ -1,25 +1,22 @@
 package io.nofrills.multimodule
 
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.Project
-import org.gradle.api.publish.PublicationContainer
 
 class ApkPlugin : AndroidPlugin() {
     override val androidPluginId: String = PLUGIN_ID_ANDROID_APP
 
-    override fun applyPublications(project: Project, publishConfig: PublishConfig, publications: PublicationContainer) {
-        project.afterEvaluate {
-            val appExtension = project.extensions.getByType(AppExtension::class.java)
-            appExtension.applicationVariants.all { appVariant ->
-                createPublicationForVariant(
-                    project,
-                    publishConfig,
-                    publications,
-                    appVariant,
-                    componentName = "${appVariant.name}_apk",
-                    publicationName = "${appVariant.name}Apk"
-                )
-            }
-        }
+    override fun getComponentNameForVariant(variant: BaseVariant): String {
+        return "${variant.name}_apk"
+    }
+
+    override fun getDefaultPublishVariant(project: Project): BaseVariant? {
+        val appExtension = project.extensions.getByType(AppExtension::class.java)
+        return appExtension.applicationVariants.find { it.name == appExtension.defaultPublishConfig }
+    }
+
+    override fun getPublicationNameForVariant(variant: BaseVariant): String {
+        return "${variant.name}Apk"
     }
 }
