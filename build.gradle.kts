@@ -64,8 +64,8 @@ version = "0.1.0"
 publishing {
     repositories {
         maven {
-            name = "myRepo"
-            url = uri("file://${buildDir}/repo")
+            name = "dist"
+            url = uri("file://${buildDir}/dist")
         }
     }
 }
