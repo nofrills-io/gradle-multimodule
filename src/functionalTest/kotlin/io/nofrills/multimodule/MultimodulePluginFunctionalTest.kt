@@ -12,7 +12,8 @@ import kotlin.test.assertTrue
 class MultimodulePluginFunctionalTest {
     @Test
     fun `additional build type`() {
-        val result = testCase("""
+        val result = testCase(
+            """
             multimodule {
                 android {
                     compileSdkVersion(28)
@@ -25,7 +26,8 @@ class MultimodulePluginFunctionalTest {
                     }
                 }
             }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all"))
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all")
+        )
 
         // Verify the result
         assertTrue(result.output.contains("compileDebugJava"))
@@ -35,14 +37,16 @@ class MultimodulePluginFunctionalTest {
 
     @Test
     fun `kotlin plugin`() {
-        val result = testCase("""
+        val result = testCase(
+            """
             multimodule {
                 android {
                     compileSdkVersion(28)
                 }
                 kotlin {}
             }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all"))
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all")
+        )
 
         // Verify the result
         assertTrue(result.output.contains("compileKotlin"))
@@ -50,11 +54,13 @@ class MultimodulePluginFunctionalTest {
 
     @Test
     fun `jar publishing`() {
-        val result = testCase("""
+        val result = testCase(
+            """
             multimodule {
                 publish {}
             }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all"))
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all")
+        )
 
         // Verify the result
         assertTrue(result.output.contains("publish"))
@@ -62,13 +68,15 @@ class MultimodulePluginFunctionalTest {
 
     @Test
     fun `jar publishing with sources`() {
-        val result = testCase("""
+        val result = testCase(
+            """
             multimodule {
                 publish {
                     withSources = true
                 }
             }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all"))
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all")
+        )
 
         // Verify the result
         assertTrue(result.output.contains("sourcesJar"))
@@ -77,7 +85,8 @@ class MultimodulePluginFunctionalTest {
 
     @Test
     fun `aar publishing`() {
-        val result = testCase("""
+        val result = testCase(
+            """
             multimodule {
                 android {
                     compileSdkVersion(28)
@@ -93,7 +102,8 @@ class MultimodulePluginFunctionalTest {
                 }
                 publish {}
             }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all"))
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all")
+        )
 
         // Verify the result
         assertTrue(result.output.contains("publishProdDebugPublicationToMavenLocal"))
@@ -104,7 +114,8 @@ class MultimodulePluginFunctionalTest {
 
     @Test
     fun `aar publishing with sources`() {
-        val result = testCase("""
+        val result = testCase(
+            """
             multimodule {
                 android {
                     compileSdkVersion(28)
@@ -113,28 +124,55 @@ class MultimodulePluginFunctionalTest {
                     withSources = true
                 }
             }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all"))
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all")
+        )
 
         // Verify the result
         assertTrue(result.output.contains("publishDebugPublicationToMavenLocal"))
         assertTrue(result.output.contains("publishReleasePublicationToMavenLocal"))
     }
 
-    private fun testCase(multimoduleConfig: String, submoduleBuildConfig: String, runnerArgs: List<String>): BuildResult {
+    @Test
+    fun `apk publishing`() {
+        val result = testCase(
+            """
+            multimodule {
+                android {
+                    compileSdkVersion(28)
+                }
+                publish {}
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.apk\") }", listOf(":lib:tasks", "--all")
+        )
+
+        // Verify the result
+        assertTrue(result.output.contains("publishDebugPublicationToMavenLocal"))
+        assertTrue(result.output.contains("publishReleasePublicationToMavenLocal"))
+    }
+
+    private fun testCase(
+        multimoduleConfig: String,
+        submoduleBuildConfig: String,
+        runnerArgs: List<String>
+    ): BuildResult {
         // Setup the test build
         val projectDir = File("build/functionalTest")
         val libDir = File(projectDir, "lib")
         libDir.mkdirs()
 
-        projectDir.resolve("settings.gradle").writeText("""
+        projectDir.resolve("settings.gradle").writeText(
+            """
             include(":lib")
-        """.trimIndent())
-        projectDir.resolve("build.gradle").writeText("""
+        """.trimIndent()
+        )
+        projectDir.resolve("build.gradle").writeText(
+            """
             plugins {
                 id("io.nofrills.multimodule")
             }
             $multimoduleConfig
-        """.trimIndent())
+        """.trimIndent()
+        )
         libDir.resolve("build.gradle").writeText(submoduleBuildConfig)
 
         // Run the build

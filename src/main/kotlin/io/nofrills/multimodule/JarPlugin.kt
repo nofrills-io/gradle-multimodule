@@ -5,17 +5,16 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublicationContainer
-import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
 
 class JarPlugin : BasePlugin() {
     override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
-        project.plugins.apply("org.jetbrains.kotlin.jvm")
+        project.plugins.apply(PLUGIN_ID_KOTLIN_JVM)
         project.configureKotlinTasks(kotlinConfigAction)
     }
 
     override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
-        project.plugins.apply("java-library")
+        project.plugins.apply(PLUGIN_ID_JAVA_LIBRARY)
         project.extensions.getByType(JavaPluginExtension::class.java).apply {
             sourceCompatibility = multimoduleExtension.javaConfig.sourceCompatibility
             targetCompatibility = multimoduleExtension.javaConfig.targetCompatibility
@@ -31,12 +30,10 @@ class JarPlugin : BasePlugin() {
             }
         }
 
-        publications.create(project.name, MavenPublication::class.java) { mavenPublication ->
-            mavenPublication.from(project.components.getByName("java"))
-            if (publishConfig.withSources) {
-                mavenPublication.artifact(sourcesJarTaskProvider.get())
-            }
-            publishConfig.mavenPom?.let { mavenPublication.pom(it) }
-        }
+        createPublication(
+            project, publishConfig, publications, sourcesJarTaskProvider,
+            componentName = "java",
+            publicationName = "jar"
+        )
     }
 }
