@@ -28,11 +28,10 @@ class JarPlugin : BasePlugin() {
     override fun applyPublications(project: Project, publishConfig: PublishConfig, publications: PublicationContainer) {
         val docsJarTaskProvider = lazy { getDocsJarTaskProvider(project) }
         val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project) }
-
         createPublication(
             project, publishConfig, publications,
-            docsJarTaskProvider = docsJarTaskProvider,
-            sourcesJarTaskProvider = sourcesJarTaskProvider,
+            docsJarTask = docsJarTaskProvider,
+            sourcesJarTask = sourcesJarTaskProvider,
             componentName = "java",
             publicationName = "jar"
         )
@@ -49,9 +48,9 @@ class JarPlugin : BasePlugin() {
     private fun getDokkaJarTaskProvider(project: Project): TaskProvider<Jar> {
         project.plugins.apply(PLUGIN_ID_DOKKA)
 
-        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) {
-            it.outputDirectory = File(project.buildDir, "dokka").path
-            it.outputFormat = "javadoc"
+        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokkaTask ->
+            dokkaTask.outputDirectory = File(project.buildDir, "dokka").path
+            dokkaTask.outputFormat = "javadoc"
         }
 
         return project.tasks.register("dokkaJar", Jar::class.java) { jar ->
@@ -71,7 +70,7 @@ class JarPlugin : BasePlugin() {
     private fun getSourcesJarTaskProvider(project: Project): TaskProvider<Jar> {
         return project.tasks.register("sourcesJar", Jar::class.java) { jar ->
             val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
-            jar.from(sourceSets.getByName("main").allJava)
+            jar.from(sourceSets.getByName("main").allSource)
             jar.archiveClassifier.set("sources")
         }
     }

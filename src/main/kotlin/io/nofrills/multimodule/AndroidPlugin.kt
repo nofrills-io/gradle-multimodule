@@ -55,8 +55,8 @@ abstract class AndroidPlugin : BasePlugin() {
 
                 createPublication(
                     project, publishConfig, publications,
-                    docsJarTaskProvider = docsJarTaskProvider,
-                    sourcesJarTaskProvider = sourcesJarTaskProvider,
+                    docsJarTask = docsJarTaskProvider,
+                    sourcesJarTask = sourcesJarTaskProvider,
                     componentName = getComponentNameForVariant(variant),
                     publicationName = getPublicationNameForVariant(variant)
                 )
