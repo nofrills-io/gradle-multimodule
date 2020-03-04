@@ -14,10 +14,13 @@ abstract class BasePlugin : Plugin<Project> {
     companion object {
         internal const val PLUGIN_ID_ANDROID_APP = "com.android.application"
         internal const val PLUGIN_ID_ANDROID_LIBRARY = "com.android.library"
+        internal const val PLUGIN_ID_DOKKA = "org.jetbrains.dokka"
         internal const val PLUGIN_ID_JAVA_LIBRARY = "java-library"
         internal const val PLUGIN_ID_KOTLIN_ANDROID = "org.jetbrains.kotlin.android"
         internal const val PLUGIN_ID_KOTLIN_JVM = "org.jetbrains.kotlin.jvm"
         private const val PLUGIN_ID_MAVEN_PUBLISH = "maven-publish"
+
+        internal const val TASK_NAME_DOKKA = "dokka"
     }
 
     /** Apply the kotlin plugin appropriate for the module. */

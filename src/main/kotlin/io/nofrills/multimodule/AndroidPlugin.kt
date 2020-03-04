@@ -8,6 +8,8 @@ import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.jetbrains.dokka.gradle.DokkaTask
+import java.io.File
 
 abstract class AndroidPlugin : BasePlugin() {
     protected abstract val androidPluginId: String
@@ -73,16 +75,27 @@ abstract class AndroidPlugin : BasePlugin() {
     }
 
     private fun getDokkaJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
-        TODO()
+        project.plugins.apply(PLUGIN_ID_DOKKA)
+
+        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) {
+            it.configuration.androidVariants = listOf(variant.name)
+            it.outputDirectory = File(project.buildDir, "dokka").path
+            it.outputFormat = "javadoc"
+        }
+
+        return project.tasks.register("dokka${variant.name}Jar", Jar::class.java) { jar ->
+            jar.from(dokkaTaskProvider.get())
+            jar.archiveClassifier.set("javadoc")
+        }
     }
 
     private fun getJavadocJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
-        val javadocProvider = project.tasks.register("android${variant.name}Javadoc", Javadoc::class.java) { javadoc ->
+        val javadocProvider = project.tasks.register("${variant.name}Javadoc", Javadoc::class.java) { javadoc ->
             javadoc.source(variant.sourceSets.map { it.javaDirectories })
             javadoc.classpath += project.files(project.extensions.getByType(TestedExtension::class.java).bootClasspath)
             javadoc.classpath += variant.javaCompileProvider.get().classpath
         }
-        return project.tasks.register("android${variant.name}JavadocJar", Jar::class.java).apply {
+        return project.tasks.register("${variant.name}JavadocJar", Jar::class.java).apply {
             configure { jar ->
                 jar.dependsOn(javadocProvider)
                 jar.archiveClassifier.set("javadoc")

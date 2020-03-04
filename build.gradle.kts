@@ -10,11 +10,11 @@ repositories {
 }
 
 dependencies {
-    // Align versions of all Kotlin components
+    implementation("com.android.tools.build:gradle:3.6.0")
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
-    implementation("com.android.tools.build:gradle:3.6.0")
+    implementation("org.jetbrains.dokka:dokka-gradle-plugin:0.10.1")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")

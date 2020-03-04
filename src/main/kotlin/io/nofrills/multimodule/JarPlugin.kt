@@ -8,6 +8,8 @@ import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.jetbrains.dokka.gradle.DokkaTask
+import java.io.File
 
 class JarPlugin : BasePlugin() {
     override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
@@ -45,7 +47,17 @@ class JarPlugin : BasePlugin() {
     }
 
     private fun getDokkaJarTaskProvider(project: Project): TaskProvider<Jar> {
-        TODO()
+        project.plugins.apply(PLUGIN_ID_DOKKA)
+
+        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) {
+            it.outputDirectory = File(project.buildDir, "dokka").path
+            it.outputFormat = "javadoc"
+        }
+
+        return project.tasks.register("dokkaJar", Jar::class.java) { jar ->
+            jar.from(dokkaTaskProvider.get())
+            jar.archiveClassifier.set("javadoc")
+        }
     }
 
     private fun getJavadocJarTaskProvider(project: Project): TaskProvider<Jar> {
