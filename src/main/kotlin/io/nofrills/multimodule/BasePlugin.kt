@@ -57,18 +57,18 @@ abstract class BasePlugin : Plugin<Project> {
         project: Project,
         publishConfig: PublishConfig,
         publications: PublicationContainer,
-        docsJarTaskProvider: TaskProvider<Jar>,
-        sourcesJarTaskProvider: TaskProvider<Jar>,
+        docsJarTaskProvider: Lazy<TaskProvider<Jar>>,
+        sourcesJarTaskProvider: Lazy<TaskProvider<Jar>>,
         componentName: String,
         publicationName: String
     ) {
         publications.create(publicationName, MavenPublication::class.java) { mavenPublication ->
             mavenPublication.from(project.components.getByName(componentName))
             if (publishConfig.withDocs) {
-                mavenPublication.artifact(docsJarTaskProvider.get())
+                mavenPublication.artifact(docsJarTaskProvider.value.get())
             }
             if (publishConfig.withSources) {
-                mavenPublication.artifact(sourcesJarTaskProvider.get())
+                mavenPublication.artifact(sourcesJarTaskProvider.value.get())
             }
             publishConfig.mavenPomAction?.let { mavenPublication.pom(it) }
         }

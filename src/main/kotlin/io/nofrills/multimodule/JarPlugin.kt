@@ -26,8 +26,8 @@ class JarPlugin : BasePlugin() {
     }
 
     override fun applyPublications(project: Project, publishConfig: PublishConfig, publications: PublicationContainer) {
-        val docsJarTaskProvider by lazy { getDocsJarTaskProvider(project) }
-        val sourcesJarTaskProvider by lazy { getSourcesJarTaskProvider(project) }
+        val docsJarTaskProvider = lazy { getDocsJarTaskProvider(project) }
+        val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project) }
 
         createPublication(
             project, publishConfig, publications,

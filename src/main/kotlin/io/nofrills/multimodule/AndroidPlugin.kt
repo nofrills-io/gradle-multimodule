@@ -50,8 +50,8 @@ abstract class AndroidPlugin : BasePlugin() {
         project.afterEvaluate {
             val variant = getDefaultPublishVariant(project)
             if (variant != null) {
-                val docsJarTaskProvider by lazy { getDocsJarTaskProvider(project, variant) }
-                val sourcesJarTaskProvider by lazy { getSourcesJarTaskProvider(project, variant) }
+                val docsJarTaskProvider = lazy { getDocsJarTaskProvider(project, variant) }
+                val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project, variant) }
 
                 createPublication(
                     project, publishConfig, publications,
@@ -83,7 +83,7 @@ abstract class AndroidPlugin : BasePlugin() {
             it.outputFormat = "javadoc"
         }
 
-        return project.tasks.register("dokka${variant.name}Jar", Jar::class.java) { jar ->
+        return project.tasks.register("${variant.name}DokkaJar", Jar::class.java) { jar ->
             jar.from(dokkaTaskProvider.get())
             jar.archiveClassifier.set("javadoc")
         }
