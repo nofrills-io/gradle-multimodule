@@ -64,6 +64,7 @@ open class PublishConfig {
     internal var mavenPomAction: Action<MavenPom>? = null
     internal var repositoriesAction: Action<RepositoryHandler>? = null
 
+    var withDocs: Boolean = false
     var withSources: Boolean = false
 
     fun mavenPom(action: Action<MavenPom>) {

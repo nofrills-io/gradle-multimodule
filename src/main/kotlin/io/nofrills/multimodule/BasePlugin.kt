@@ -54,12 +54,16 @@ abstract class BasePlugin : Plugin<Project> {
         project: Project,
         publishConfig: PublishConfig,
         publications: PublicationContainer,
+        docsJarTaskProvider: TaskProvider<Jar>,
         sourcesJarTaskProvider: TaskProvider<Jar>,
         componentName: String,
         publicationName: String
     ) {
         publications.create(publicationName, MavenPublication::class.java) { mavenPublication ->
             mavenPublication.from(project.components.getByName(componentName))
+            if (publishConfig.withDocs) {
+                mavenPublication.artifact(docsJarTaskProvider.get())
+            }
             if (publishConfig.withSources) {
                 mavenPublication.artifact(sourcesJarTaskProvider.get())
             }

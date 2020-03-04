@@ -5,7 +5,9 @@ import com.android.build.gradle.api.BaseVariant
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.publish.PublicationContainer
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.javadoc.Javadoc
 
 abstract class AndroidPlugin : BasePlugin() {
     protected abstract val androidPluginId: String
@@ -46,21 +48,53 @@ abstract class AndroidPlugin : BasePlugin() {
         project.afterEvaluate {
             val variant = getDefaultPublishVariant(project)
             if (variant != null) {
-                val sourcesJarTaskProvider by lazy {
-                    project.tasks.register("${variant.name}SourcesJar", Jar::class.java) { jar ->
-                        jar.from(variant.sourceSets.map { it.javaDirectories })
-                        jar.archiveClassifier.set("sources")
-                    }
-                }
+                val docsJarTaskProvider by lazy { getDocsJarTaskProvider(project, variant) }
+                val sourcesJarTaskProvider by lazy { getSourcesJarTaskProvider(project, variant) }
 
                 createPublication(
-                    project, publishConfig, publications, sourcesJarTaskProvider,
+                    project, publishConfig, publications,
+                    docsJarTaskProvider = docsJarTaskProvider,
+                    sourcesJarTaskProvider = sourcesJarTaskProvider,
                     componentName = getComponentNameForVariant(variant),
                     publicationName = getPublicationNameForVariant(variant)
                 )
             } else {
                 project.logger.warn("Cannot create publication for ${project}: default publish config not found (check 'android.defaultPublishConfig' setting).")
             }
+        }
+    }
+
+    private fun getDocsJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
+        return if (project.plugins.hasPlugin(PLUGIN_ID_KOTLIN_ANDROID)) {
+            getDokkaJarTaskProvider(project, variant)
+        } else {
+            getJavadocJarTaskProvider(project, variant)
+        }
+    }
+
+    private fun getDokkaJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
+        TODO()
+    }
+
+    private fun getJavadocJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
+        val javadocProvider = project.tasks.register("android${variant.name}Javadoc", Javadoc::class.java) { javadoc ->
+            javadoc.source(variant.sourceSets.map { it.javaDirectories })
+            javadoc.classpath += project.files(project.extensions.getByType(TestedExtension::class.java).bootClasspath)
+            javadoc.classpath += variant.javaCompileProvider.get().classpath
+        }
+        return project.tasks.register("android${variant.name}JavadocJar", Jar::class.java).apply {
+            configure { jar ->
+                jar.dependsOn(javadocProvider)
+                jar.archiveClassifier.set("javadoc")
+                jar.from(javadocProvider.get().destinationDir)
+            }
+        }
+    }
+
+    private fun getSourcesJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
+        return project.tasks.register("${variant.name}SourcesJar", Jar::class.java) { jar ->
+            jar.from(variant.sourceSets.map { it.javaDirectories })
+            jar.archiveClassifier.set("sources")
         }
     }
 }
