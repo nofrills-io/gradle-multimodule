@@ -48,9 +48,9 @@ class JarPlugin : BasePlugin() {
     private fun getDokkaJarTaskProvider(project: Project): TaskProvider<Jar> {
         project.plugins.apply(PLUGIN_ID_DOKKA)
 
-        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokkaTask ->
-            dokkaTask.outputDirectory = File(project.buildDir, "dokka").path
-            dokkaTask.outputFormat = "javadoc"
+        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokka ->
+            dokka.outputDirectory = File(project.buildDir, "dokka").path
+            dokka.outputFormat = DOKKA_FORMAT
         }
 
         return project.tasks.register("dokkaJar", Jar::class.java) { jar ->

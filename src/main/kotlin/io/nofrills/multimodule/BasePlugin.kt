@@ -20,6 +20,7 @@ abstract class BasePlugin : Plugin<Project> {
         internal const val PLUGIN_ID_KOTLIN_JVM = "org.jetbrains.kotlin.jvm"
         private const val PLUGIN_ID_MAVEN_PUBLISH = "maven-publish"
 
+        internal const val DOKKA_FORMAT = "html"
         internal const val TASK_NAME_DOKKA = "dokka"
     }
 

@@ -77,10 +77,10 @@ abstract class AndroidPlugin : BasePlugin() {
     private fun getDokkaJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
         project.plugins.apply(PLUGIN_ID_DOKKA)
 
-        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) {
-            it.configuration.androidVariants = listOf(variant.name)
-            it.outputDirectory = File(project.buildDir, "dokka").path
-            it.outputFormat = "javadoc"
+        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokka ->
+            dokka.configuration.androidVariants = listOf(variant.name)
+            dokka.outputDirectory = File(project.buildDir, "dokka").path
+            dokka.outputFormat = DOKKA_FORMAT
         }
 
         return project.tasks.register("${variant.name}DokkaJar", Jar::class.java) { jar ->
