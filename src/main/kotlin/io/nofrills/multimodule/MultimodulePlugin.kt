@@ -1,17 +1,24 @@
 package io.nofrills.multimodule
 
 import com.android.build.gradle.TestedExtension
+import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.publish.maven.MavenPom
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
-
-private const val MULTIMODULE_EXT_NAME = "multimodule"
+import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+import java.io.File
 
 class MultimodulePlugin : Plugin<Project> {
+    companion object {
+        private const val DOKKA_FORMAT = "html"
+        private const val MULTIMODULE_EXT_NAME = "multimodule"
+    }
+
     override fun apply(project: Project) {
         if (project.rootProject == project) {
             applyToRootProject(project)
@@ -21,18 +28,44 @@ class MultimodulePlugin : Plugin<Project> {
     }
 
     private fun applyToRootProject(project: Project) {
-        project.extensions.create<MultimoduleExtension>(MULTIMODULE_EXT_NAME, MultimoduleExtension::class.java, project)
+        val ext = project.extensions.create(MULTIMODULE_EXT_NAME, MultimoduleExtension::class.java, project)
+        project.afterEvaluate {
+            val jdkVersion by lazy { ext.javaConfig.sourceCompatibility.ordinal + 1 }
+            ext.dokkaAction?.let { applyGlobalDokka(project, it, jdkVersion) }
+        }
+    }
+
+    private fun applyGlobalDokka(project: Project, action: Action<DokkaTask>, jdkVersion: Int) {
+        project.plugins.apply(BasePlugin.PLUGIN_ID_DOKKA)
+        project.tasks.named("dokka", DokkaTask::class.java) { dokka ->
+            dokka.outputDirectory = File(project.buildDir, "dokka").path
+            dokka.outputFormat = DOKKA_FORMAT
+            dokka.configuration.jdkVersion = jdkVersion
+
+            dokka.doFirst {
+                val kotlinProjects = project.subprojects.filter {
+                    it.getKotlinPluginVersion() != null
+                }
+                dokka.subProjects = kotlinProjects.map { it.name }
+                action.execute(dokka)
+            }
+        }
     }
 }
 
 abstract class MultimoduleExtension(project: Project) {
     internal var androidAction: Action<TestedExtension>? = null
+    internal var dokkaAction: Action<DokkaTask>? = null
     internal val javaConfig: JavaConfig = project.objects.newInstance(JavaConfig::class.java)
     internal var kotlinAction: Action<KotlinConfig>? = null
     internal var publishConfig: PublishConfig? = null
 
     fun android(action: Action<TestedExtension>) {
         androidAction = action
+    }
+
+    fun dokka(action: Action<DokkaTask>) {
+        dokkaAction = action
     }
 
     fun java(action: Action<JavaConfig>) {
