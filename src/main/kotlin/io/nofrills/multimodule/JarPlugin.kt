@@ -8,10 +8,27 @@ import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
 import java.io.File
 
 class JarPlugin : BasePlugin() {
+    override fun applyJacoco(project: Project, jacocoAction: Action<JacocoReport>) {
+        project.plugins.apply(PLUGIN_ID_JACOCO)
+        project.tasks.withType(JacocoReport::class.java) { jacoco ->
+            jacoco.dependsOn(project.tasks.withType(Test::class.java))
+            jacoco.reports {
+                it.html.isEnabled = true
+                it.xml.isEnabled = true
+            }
+            jacocoAction.execute(jacoco)
+        }
+        project.tasks.named("check") {
+            it.dependsOn(project.tasks.withType(JacocoReport::class.java))
+        }
+    }
+
     override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
         project.plugins.apply(PLUGIN_ID_KOTLIN_JVM)
         project.configureKotlinTasks(kotlinConfigAction)

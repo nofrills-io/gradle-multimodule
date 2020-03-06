@@ -8,6 +8,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.publish.maven.MavenPom
+import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
@@ -56,6 +57,7 @@ class MultimodulePlugin : Plugin<Project> {
 abstract class MultimoduleExtension(project: Project) {
     internal var androidAction: Action<TestedExtension>? = null
     internal var dokkaAction: Action<DokkaTask>? = null
+    internal var jacocoAction: Action<JacocoReport>? = null
     internal val javaConfig: JavaConfig = project.objects.newInstance(JavaConfig::class.java)
     internal var kotlinAction: Action<KotlinConfig>? = null
     internal var publishConfig: PublishConfig? = null
@@ -66,6 +68,10 @@ abstract class MultimoduleExtension(project: Project) {
 
     fun dokka(action: Action<DokkaTask>) {
         dokkaAction = action
+    }
+
+    fun jacoco(action: Action<JacocoReport>) {
+        jacocoAction = action
     }
 
     fun java(action: Action<JavaConfig>) {
@@ -85,7 +91,9 @@ abstract class MultimoduleExtension(project: Project) {
 }
 
 open class KotlinConfig(private val kotlinJvmOptions: KotlinJvmOptions) : KotlinJvmOptions by kotlinJvmOptions {
-    override var jvmTarget: String = "1.8"
+    init {
+        kotlinJvmOptions.jvmTarget = "1.8"
+    }
 }
 
 open class JavaConfig {

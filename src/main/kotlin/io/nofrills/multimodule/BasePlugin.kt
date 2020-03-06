@@ -8,6 +8,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 abstract class BasePlugin : Plugin<Project> {
@@ -15,6 +16,7 @@ abstract class BasePlugin : Plugin<Project> {
         internal const val PLUGIN_ID_ANDROID_APP = "com.android.application"
         internal const val PLUGIN_ID_ANDROID_LIBRARY = "com.android.library"
         internal const val PLUGIN_ID_DOKKA = "org.jetbrains.dokka"
+        internal const val PLUGIN_ID_JACOCO = "jacoco"
         internal const val PLUGIN_ID_JAVA_LIBRARY = "java-library"
         internal const val PLUGIN_ID_KOTLIN_ANDROID = "org.jetbrains.kotlin.android"
         internal const val PLUGIN_ID_KOTLIN_JVM = "org.jetbrains.kotlin.jvm"
@@ -23,6 +25,9 @@ abstract class BasePlugin : Plugin<Project> {
         internal const val DOKKA_FORMAT = "html"
         internal const val TASK_NAME_DOKKA = "dokka"
     }
+
+    /** Apply the jacoco plugin. */
+    protected abstract fun applyJacoco(project: Project, jacocoAction: Action<JacocoReport>)
 
     /** Apply the kotlin plugin appropriate for the module. */
     protected abstract fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>)
@@ -42,8 +47,12 @@ abstract class BasePlugin : Plugin<Project> {
 
         applyPlugin(project, multimoduleExtension)
 
-        multimoduleExtension.kotlinAction?.let { kotlinConfigAction ->
-            applyKotlin(project, kotlinConfigAction)
+        multimoduleExtension.kotlinAction?.let {
+            applyKotlin(project, it)
+        }
+
+        multimoduleExtension.jacocoAction?.let {
+            applyJacoco(project, it)
         }
 
         multimoduleExtension.publishConfig?.let { publishConfig ->

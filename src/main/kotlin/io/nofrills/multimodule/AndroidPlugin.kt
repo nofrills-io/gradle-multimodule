@@ -2,21 +2,61 @@ package io.nofrills.multimodule
 
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.ide.dependencies.getVariantName
+import com.android.build.gradle.internal.tasks.factory.dependsOn
+import com.android.ide.common.gradle.model.toSourceSet
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
 import java.io.File
 
 abstract class AndroidPlugin : BasePlugin() {
     protected abstract val androidPluginId: String
 
+    protected abstract fun getBaseVariants(project: Project): Collection<BaseVariant>
     protected abstract fun getComponentNameForVariant(variant: BaseVariant): String
-    protected abstract fun getDefaultPublishVariant(project: Project): BaseVariant?
     protected abstract fun getPublicationNameForVariant(variant: BaseVariant): String
+
+    override fun applyJacoco(project: Project, jacocoAction: Action<JacocoReport>) {
+        project.plugins.apply(PLUGIN_ID_JACOCO)
+        project.tasks.withType(Test::class.java) { test ->
+            test.extensions.configure(JacocoTaskExtension::class.java) {
+                it.isIncludeNoLocationClasses = true
+            }
+        }
+
+        project.afterEvaluate { _ ->
+            getBaseVariants(project).forEach { variant ->
+                val jacocoReportTask = project.tasks.register(
+                    "jacoco${variant.name.capitalize()}TestReport",
+                    JacocoReport::class.java
+                ) { jacoco ->
+                    jacoco.dependsOn(project.tasks.withType(Test::class.java))
+                    jacoco.executionData.setFrom(project.fileTree(project.buildDir) {
+                        it.include(setOf("jacoco/test${variant.name.capitalize()}UnitTest.exec"))
+                    })
+                    jacoco.reports {
+                        it.html.isEnabled = true
+                        it.xml.isEnabled = true
+                    }
+
+                    jacoco.sourceDirectories.setFrom(variant.sourceSets.map { it.javaDirectories })
+                    jacoco.classDirectories.setFrom(variant.getCompileClasspath(null).filter { it.extension != "jar" })
+
+                    jacocoAction.execute(jacoco)
+                }
+
+                project.tasks.named("check").dependsOn(jacocoReportTask)
+            }
+        }
+    }
 
     final override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
         project.plugins.apply(PLUGIN_ID_KOTLIN_ANDROID)
@@ -66,6 +106,11 @@ abstract class AndroidPlugin : BasePlugin() {
         }
     }
 
+    private fun getDefaultPublishVariant(project: Project): BaseVariant? {
+        val testedExtension = project.extensions.getByType(TestedExtension::class.java)
+        return getBaseVariants(project).find { it.name == testedExtension.defaultPublishConfig }
+    }
+
     private fun getDocsJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
         return if (project.plugins.hasPlugin(PLUGIN_ID_KOTLIN_ANDROID)) {
             getDokkaJarTaskProvider(project, variant)
@@ -108,6 +153,14 @@ abstract class AndroidPlugin : BasePlugin() {
         return project.tasks.register("${variant.name}SourcesJar", Jar::class.java) { jar ->
             jar.from(variant.sourceSets.map { it.javaDirectories })
             jar.archiveClassifier.set("sources")
+        }
+    }
+
+    private fun camelConcat(a: String, b: String): String {
+        return if (a.isNotBlank()) {
+            "$a${b.capitalize()}"
+        } else {
+            b
         }
     }
 }
