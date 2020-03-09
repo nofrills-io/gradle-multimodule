@@ -2,6 +2,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     id("org.jetbrains.kotlin.jvm") version "1.3.61"
+    id("com.gradle.plugin-publish") version "0.10.1"
 }
 
 repositories {
@@ -24,18 +25,26 @@ gradlePlugin {
     val multimodule by plugins.creating {
         id = "io.nofrills.multimodule"
         implementationClass = "io.nofrills.multimodule.MultimodulePlugin"
+        displayName = "Multimodule plugin"
+        description = "Create your submodules quickly by applying a common configuration."
     }
     val aar by plugins.creating {
         id = "io.nofrills.multimodule.aar"
         implementationClass = "io.nofrills.multimodule.AarPlugin"
+        displayName = "Multimodule AAR plugin"
+        description = "Create an AAR (Android library) submodule."
     }
     val apk by plugins.creating {
         id = "io.nofrills.multimodule.apk"
         implementationClass = "io.nofrills.multimodule.ApkPlugin"
+        displayName = "Multimodule APK plugin"
+        description = "Create an APK (Android application) submodule."
     }
     val jar by plugins.creating {
         id = "io.nofrills.multimodule.jar"
         implementationClass = "io.nofrills.multimodule.JarPlugin"
+        displayName = "Multimodule JAR plugin"
+        description = "Create an JAR (Java library) submodule."
     }
 }
 
@@ -68,4 +77,10 @@ publishing {
             url = uri("file://${buildDir}/dist")
         }
     }
+}
+
+pluginBundle {
+    website = "https://github.com/nofrills-io/gradle-multimodule"
+    vcsUrl = "https://github.com/nofrills-io/gradle-multimodule"
+    tags = listOf("android", "aar", "apk", "jar", "submodule")
 }
