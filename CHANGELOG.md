@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
-## [0.2.0] - 2014-07-10
+## [0.2.0] - 2020-03-11
 ### Added
 - Sub-projects can now decide to opt-out of dokka, jacoco or publishing
     by configuring the "submodule" extension
@@ -18,6 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     that can later be applied to any sub-project
 - Common configuration can include android, dokka, jacoco, java, kotlin and publishing
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/nofrills-io/gradle-multimodule/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/nofrills-io/gradle-multimodule/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/nofrills-io/gradle-multimodule/releases/tag/v0.1.0
