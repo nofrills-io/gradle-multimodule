@@ -19,6 +19,7 @@ package io.nofrills.multimodule
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -38,8 +39,14 @@ abstract class BasePlugin : Plugin<Project> {
         internal const val PLUGIN_ID_KOTLIN_JVM = "org.jetbrains.kotlin.jvm"
         private const val PLUGIN_ID_MAVEN_PUBLISH = "maven-publish"
 
+        private const val SUBMODULE_EXT_NAME = "submodule"
+
         internal const val DOKKA_FORMAT = "html"
         internal const val TASK_NAME_DOKKA = "dokka"
+
+        internal fun getSubmoduleExtension(project: Project): SubmoduleExtension {
+            return project.extensions.getByType(SubmoduleExtension::class.java)
+        }
     }
 
     /** Apply the jacoco plugin. */
@@ -59,6 +66,7 @@ abstract class BasePlugin : Plugin<Project> {
     )
 
     final override fun apply(project: Project) {
+        val submoduleExtension = project.extensions.create(SUBMODULE_EXT_NAME, SubmoduleExtension::class.java, project)
         val multimoduleExtension = project.rootProject.extensions.getByType(MultimoduleExtension::class.java)
 
         applyPlugin(project, multimoduleExtension)
@@ -67,15 +75,23 @@ abstract class BasePlugin : Plugin<Project> {
             applyKotlin(project, it)
         }
 
-        multimoduleExtension.jacocoAction?.let {
-            applyJacoco(project, it)
+        multimoduleExtension.jacocoAction?.let { jacocoAction ->
+            project.afterEvaluate { project ->
+                if (submoduleExtension.jacocoAllowed.get()) {
+                    applyJacoco(project, jacocoAction)
+                }
+            }
         }
 
         multimoduleExtension.publishConfig?.let { publishConfig ->
-            project.plugins.apply(PLUGIN_ID_MAVEN_PUBLISH)
-            val publishing = project.extensions.getByType(PublishingExtension::class.java)
-            publishConfig.repositoriesAction?.let { publishing.repositories(it) }
-            applyPublications(project, publishConfig, publishing.publications)
+            project.afterEvaluate { project ->
+                if (submoduleExtension.publishAllowed.get()) {
+                    project.plugins.apply(PLUGIN_ID_MAVEN_PUBLISH)
+                    val publishing = project.extensions.getByType(PublishingExtension::class.java)
+                    publishConfig.repositoriesAction?.let { publishing.repositories(it) }
+                    applyPublications(project, publishConfig, publishing.publications)
+                }
+            }
         }
     }
 
@@ -106,4 +122,10 @@ abstract class BasePlugin : Plugin<Project> {
             kotlinConfigAction.execute(kotlinConfig)
         }
     }
+}
+
+abstract class SubmoduleExtension(project: Project) {
+    var dokkaAllowed: Property<Boolean> = project.objects.property(Boolean::class.java).convention(true)
+    var jacocoAllowed: Property<Boolean> = project.objects.property(Boolean::class.java).convention(true)
+    var publishAllowed: Property<Boolean> = project.objects.property(Boolean::class.java).convention(true)
 }

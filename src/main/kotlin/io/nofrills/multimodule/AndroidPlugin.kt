@@ -48,29 +48,27 @@ abstract class AndroidPlugin : BasePlugin() {
             }
         }
 
-        project.afterEvaluate { _ ->
-            getBaseVariants(project).forEach { variant ->
-                val jacocoReportTask = project.tasks.register(
-                    "jacoco${variant.name.capitalize()}TestReport",
-                    JacocoReport::class.java
-                ) { jacoco ->
-                    jacoco.dependsOn(project.tasks.withType(Test::class.java))
-                    jacoco.executionData.setFrom(project.fileTree(project.buildDir) {
-                        it.include(setOf("jacoco/test${variant.name.capitalize()}UnitTest.exec"))
-                    })
-                    jacoco.reports {
-                        it.html.isEnabled = true
-                        it.xml.isEnabled = true
-                    }
-
-                    jacoco.sourceDirectories.setFrom(variant.sourceSets.map { it.javaDirectories })
-                    jacoco.classDirectories.setFrom(variant.getCompileClasspath(null).filter { it.extension != "jar" })
-
-                    jacocoAction.execute(jacoco)
+        getBaseVariants(project).forEach { variant ->
+            val jacocoReportTask = project.tasks.register(
+                "jacoco${variant.name.capitalize()}TestReport",
+                JacocoReport::class.java
+            ) { jacoco ->
+                jacoco.dependsOn(project.tasks.withType(Test::class.java))
+                jacoco.executionData.setFrom(project.fileTree(project.buildDir) {
+                    it.include(setOf("jacoco/test${variant.name.capitalize()}UnitTest.exec"))
+                })
+                jacoco.reports {
+                    it.html.isEnabled = true
+                    it.xml.isEnabled = true
                 }
 
-                project.tasks.named("check").dependsOn(jacocoReportTask)
+                jacoco.sourceDirectories.setFrom(variant.sourceSets.map { it.javaDirectories })
+                jacoco.classDirectories.setFrom(variant.getCompileClasspath(null).filter { it.extension != "jar" })
+
+                jacocoAction.execute(jacoco)
             }
+
+            project.tasks.named("check").dependsOn(jacocoReportTask)
         }
     }
 
@@ -103,22 +101,20 @@ abstract class AndroidPlugin : BasePlugin() {
         publishConfig: PublishConfig,
         publications: PublicationContainer
     ) {
-        project.afterEvaluate {
-            val variant = getDefaultPublishVariant(project)
-            if (variant != null) {
-                val docsJarTaskProvider = lazy { getDocsJarTaskProvider(project, variant) }
-                val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project, variant) }
+        val variant = getDefaultPublishVariant(project)
+        if (variant != null) {
+            val docsJarTaskProvider = lazy { getDocsJarTaskProvider(project, variant) }
+            val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project, variant) }
 
-                createPublication(
-                    project, publishConfig, publications,
-                    docsJarTask = docsJarTaskProvider,
-                    sourcesJarTask = sourcesJarTaskProvider,
-                    componentName = getComponentNameForVariant(variant),
-                    publicationName = getPublicationNameForVariant(variant)
-                )
-            } else {
-                project.logger.warn("Cannot create publication for ${project}: default publish config not found (check 'android.defaultPublishConfig' setting).")
-            }
+            createPublication(
+                project, publishConfig, publications,
+                docsJarTask = docsJarTaskProvider,
+                sourcesJarTask = sourcesJarTaskProvider,
+                componentName = getComponentNameForVariant(variant),
+                publicationName = getPublicationNameForVariant(variant)
+            )
+        } else {
+            project.logger.warn("Cannot create publication for ${project}: default publish config not found (check 'android.defaultPublishConfig' setting).")
         }
     }
 
@@ -169,14 +165,6 @@ abstract class AndroidPlugin : BasePlugin() {
         return project.tasks.register("${variant.name}SourcesJar", Jar::class.java) { jar ->
             jar.from(variant.sourceSets.map { it.javaDirectories })
             jar.archiveClassifier.set("sources")
-        }
-    }
-
-    private fun camelConcat(a: String, b: String): String {
-        return if (a.isNotBlank()) {
-            "$a${b.capitalize()}"
-        } else {
-            b
         }
     }
 }

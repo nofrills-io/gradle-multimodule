@@ -23,6 +23,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
@@ -61,7 +62,8 @@ class MultimodulePlugin : Plugin<Project> {
 
             dokka.doFirst {
                 val kotlinProjects = project.subprojects.filter {
-                    it.getKotlinPluginVersion() != null
+                    val submoduleExtension = BasePlugin.getSubmoduleExtension(it)
+                    it.getKotlinPluginVersion() != null && submoduleExtension.dokkaAllowed.get()
                 }
                 dokka.subProjects = kotlinProjects.map { it.name }
                 action.execute(dokka)

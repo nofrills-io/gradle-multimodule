@@ -23,6 +23,7 @@ import org.gradle.testkit.runner.BuildResult
 import java.io.File
 import org.gradle.testkit.runner.GradleRunner
 import kotlin.test.Test
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MultimodulePluginFunctionalTest {
@@ -52,7 +53,7 @@ class MultimodulePluginFunctionalTest {
     }
 
     @Test
-    fun `kotlin plugin`() {
+    fun `jar kotlin plugin`() {
         val result = testCase(
             """
             multimodule {
@@ -66,6 +67,24 @@ class MultimodulePluginFunctionalTest {
 
         // Verify the result
         assertTrue(result.output.contains("compileKotlin"))
+    }
+
+    @Test
+    fun `aar kotlin plugin`() {
+        val result = testCase(
+            """
+            multimodule {
+                android {
+                    compileSdkVersion(28)
+                }
+                kotlin {}
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all")
+        )
+
+        // Verify the result
+        assertTrue(result.output.contains("compileDebugKotlin"))
+        assertTrue(result.output.contains("compileReleaseKotlin"))
     }
 
     @Test
