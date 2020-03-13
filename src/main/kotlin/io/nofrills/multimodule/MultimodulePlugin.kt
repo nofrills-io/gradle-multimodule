@@ -17,13 +17,11 @@
 package io.nofrills.multimodule
 
 import com.android.build.gradle.TestedExtension
-import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
@@ -47,7 +45,7 @@ class MultimodulePlugin : Plugin<Project> {
 
     private fun applyToRootProject(project: Project) {
         val ext = project.extensions.create(MULTIMODULE_EXT_NAME, MultimoduleExtension::class.java, project)
-        project.afterEvaluate {
+        project.gradle.projectsEvaluated {
             val jdkVersion by lazy { ext.javaConfig.sourceCompatibility.ordinal + 1 }
             ext.dokkaAction?.let { applyGlobalDokka(project, it, jdkVersion) }
         }
@@ -60,14 +58,12 @@ class MultimodulePlugin : Plugin<Project> {
             dokka.outputFormat = DOKKA_FORMAT
             dokka.configuration.jdkVersion = jdkVersion
 
-            dokka.doFirst {
-                val kotlinProjects = project.subprojects.filter {
-                    val submoduleExtension = BasePlugin.getSubmoduleExtension(it)
-                    it.getKotlinPluginVersion() != null && submoduleExtension.dokkaAllowed.get()
-                }
-                dokka.subProjects = kotlinProjects.map { it.name }
-                action.execute(dokka)
+            val kotlinProjects = project.subprojects.filter {
+                val submoduleExtension = BasePlugin.getSubmoduleExtension(it)
+                it.getKotlinPluginVersion() != null && submoduleExtension.dokkaAllowed.get()
             }
+            dokka.subProjects = kotlinProjects.map { it.name }
+            action.execute(dokka)
         }
     }
 }
