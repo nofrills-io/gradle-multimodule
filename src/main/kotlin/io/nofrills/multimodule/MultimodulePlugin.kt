@@ -60,7 +60,7 @@ class MultimodulePlugin : Plugin<Project> {
 
             val kotlinProjects = project.subprojects.filter {
                 val submoduleExtension = BasePlugin.getSubmoduleExtension(it)
-                it.getKotlinPluginVersion() != null && submoduleExtension.dokkaAllowed.get()
+                it.getKotlinPluginVersion() != null && (submoduleExtension?.dokkaAllowed?.get() ?: false)
             }
             dokka.subProjects = kotlinProjects.map { it.name }
             action.execute(dokka)

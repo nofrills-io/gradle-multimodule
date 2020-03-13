@@ -44,8 +44,8 @@ abstract class BasePlugin : Plugin<Project> {
         internal const val DOKKA_FORMAT = "html"
         internal const val TASK_NAME_DOKKA = "dokka"
 
-        internal fun getSubmoduleExtension(project: Project): SubmoduleExtension {
-            return project.extensions.getByType(SubmoduleExtension::class.java)
+        internal fun getSubmoduleExtension(project: Project): SubmoduleExtension? {
+            return project.extensions.findByType(SubmoduleExtension::class.java)
         }
     }
 
