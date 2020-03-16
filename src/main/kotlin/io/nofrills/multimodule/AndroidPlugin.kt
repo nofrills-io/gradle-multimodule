@@ -18,9 +18,7 @@ package io.nofrills.multimodule
 
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.BaseVariant
-import com.android.build.gradle.internal.ide.dependencies.getVariantName
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import com.android.ide.common.gradle.model.toSourceSet
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.publish.PublicationContainer
@@ -41,7 +39,7 @@ abstract class AndroidPlugin : BasePlugin() {
     protected abstract fun getPublicationNameForVariant(variant: BaseVariant): String
 
     override fun applyJacoco(project: Project, jacocoAction: Action<JacocoReport>) {
-        project.plugins.apply(PLUGIN_ID_JACOCO)
+        project.pluginManager.apply(PLUGIN_ID_JACOCO)
         project.tasks.withType(Test::class.java) { test ->
             test.extensions.configure(JacocoTaskExtension::class.java) {
                 it.isIncludeNoLocationClasses = true
@@ -73,7 +71,7 @@ abstract class AndroidPlugin : BasePlugin() {
     }
 
     final override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
-        project.plugins.apply(PLUGIN_ID_KOTLIN_ANDROID)
+        project.pluginManager.apply(PLUGIN_ID_KOTLIN_ANDROID)
         project.configureKotlinTasks(kotlinConfigAction)
         project.extensions.getByType(TestedExtension::class.java).apply {
             sourceSets {
@@ -85,7 +83,7 @@ abstract class AndroidPlugin : BasePlugin() {
     }
 
     final override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
-        project.plugins.apply(androidPluginId)
+        project.pluginManager.apply(androidPluginId)
 
         project.extensions.getByType(TestedExtension::class.java).apply {
             compileOptions {
@@ -132,7 +130,7 @@ abstract class AndroidPlugin : BasePlugin() {
     }
 
     private fun getDokkaJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
-        project.plugins.apply(PLUGIN_ID_DOKKA)
+        project.pluginManager.apply(PLUGIN_ID_DOKKA)
 
         val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokka ->
             dokka.configuration.androidVariants = listOf(variant.name)

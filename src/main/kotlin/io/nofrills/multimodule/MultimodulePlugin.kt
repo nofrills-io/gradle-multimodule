@@ -52,7 +52,7 @@ class MultimodulePlugin : Plugin<Project> {
     }
 
     private fun applyGlobalDokka(project: Project, action: Action<DokkaTask>, jdkVersion: Int) {
-        project.plugins.apply(BasePlugin.PLUGIN_ID_DOKKA)
+        project.pluginManager.apply(BasePlugin.PLUGIN_ID_DOKKA)
         project.tasks.named("dokka", DokkaTask::class.java) { dokka ->
             dokka.outputDirectory = File(project.buildDir, "dokka").path
             dokka.outputFormat = DOKKA_FORMAT

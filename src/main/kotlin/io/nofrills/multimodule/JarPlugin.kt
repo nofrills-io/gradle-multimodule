@@ -31,7 +31,7 @@ import java.io.File
 
 class JarPlugin : BasePlugin() {
     override fun applyJacoco(project: Project, jacocoAction: Action<JacocoReport>) {
-        project.plugins.apply(PLUGIN_ID_JACOCO)
+        project.pluginManager.apply(PLUGIN_ID_JACOCO)
         project.tasks.withType(JacocoReport::class.java) { jacoco ->
             jacoco.dependsOn(project.tasks.withType(Test::class.java))
             jacoco.reports {
@@ -46,12 +46,12 @@ class JarPlugin : BasePlugin() {
     }
 
     override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
-        project.plugins.apply(PLUGIN_ID_KOTLIN_JVM)
+        project.pluginManager.apply(PLUGIN_ID_KOTLIN_JVM)
         project.configureKotlinTasks(kotlinConfigAction)
     }
 
     override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
-        project.plugins.apply(PLUGIN_ID_JAVA_LIBRARY)
+        project.pluginManager.apply(PLUGIN_ID_JAVA_LIBRARY)
         project.extensions.getByType(JavaPluginExtension::class.java).apply {
             sourceCompatibility = multimoduleExtension.javaConfig.sourceCompatibility
             targetCompatibility = multimoduleExtension.javaConfig.targetCompatibility
@@ -79,7 +79,7 @@ class JarPlugin : BasePlugin() {
     }
 
     private fun getDokkaJarTaskProvider(project: Project): TaskProvider<Jar> {
-        project.plugins.apply(PLUGIN_ID_DOKKA)
+        project.pluginManager.apply(PLUGIN_ID_DOKKA)
 
         val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokka ->
             dokka.outputDirectory = File(project.buildDir, "dokka").path

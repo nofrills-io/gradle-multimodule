@@ -86,7 +86,7 @@ abstract class BasePlugin : Plugin<Project> {
         multimoduleExtension.publishConfig?.let { publishConfig ->
             project.afterEvaluate { project ->
                 if (submoduleExtension.publishAllowed.get()) {
-                    project.plugins.apply(PLUGIN_ID_MAVEN_PUBLISH)
+                    project.pluginManager.apply(PLUGIN_ID_MAVEN_PUBLISH)
                     val publishing = project.extensions.getByType(PublishingExtension::class.java)
                     publishConfig.repositoriesAction?.let { publishing.repositories(it) }
                     applyPublications(project, publishConfig, publishing.publications)
