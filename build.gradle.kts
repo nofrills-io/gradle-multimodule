@@ -1,9 +1,16 @@
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin", Ver.Kotlin::execute)
+    }
+}
+
 plugins {
     `java-gradle-plugin`
     `maven-publish`
-    id("org.jetbrains.kotlin.jvm") version "1.3.61"
     id("com.gradle.plugin-publish") version "0.10.1"
 }
+
+apply(plugin = "org.jetbrains.kotlin.jvm")
 
 repositories {
     jcenter()
@@ -11,14 +18,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.android.tools.build:gradle:3.6.0")
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
-    implementation("org.jetbrains.dokka:dokka-gradle-plugin:0.10.1")
+    implementation("com.android.tools.build:gradle", Ver.AndroidBuildTools)
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin", Ver.Kotlin)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8", Ver.Kotlin)
+    implementation("org.jetbrains.dokka:dokka-gradle-plugin", Ver.Dokka)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    testImplementation("org.jetbrains.kotlin:kotlin-test", Ver.Kotlin)
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit", Ver.Kotlin)
 }
 
 gradlePlugin {
