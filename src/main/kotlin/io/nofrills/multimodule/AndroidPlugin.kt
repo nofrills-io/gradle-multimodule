@@ -42,6 +42,7 @@ abstract class AndroidPlugin : BasePlugin() {
         project.pluginManager.apply(PLUGIN_ID_JACOCO)
         project.tasks.withType(Test::class.java) { test ->
             test.extensions.configure(JacocoTaskExtension::class.java) {
+                it.excludes = listOf("jdk.internal.*")
                 it.isIncludeNoLocationClasses = true
             }
         }
