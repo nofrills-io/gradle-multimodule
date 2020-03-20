@@ -21,6 +21,9 @@ import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
+import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
@@ -67,18 +70,29 @@ abstract class AndroidPlugin : BasePlugin() {
                 jacocoAction.execute(jacoco)
             }
 
-            project.tasks.named("check").dependsOn(jacocoReportTask)
+            project.tasks.named(CHECK_TASK_NAME).dependsOn(jacocoReportTask)
         }
     }
 
-    final override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
+    final override fun applyKotlin(project: Project, kotlinConfig: KotlinConfig) {
         project.pluginManager.apply(PLUGIN_ID_KOTLIN_ANDROID)
-        project.configureKotlinTasks(kotlinConfigAction)
+        if (kotlinConfig.androidExtensions) {
+            project.pluginManager.apply(PLUGIN_ID_KOTLIN_ANDROID_EXTENSIONS)
+        }
         project.extensions.getByType(TestedExtension::class.java).apply {
             sourceSets {
                 it.getByName("androidTest").java.srcDir("src/androidTest/kotlin")
                 it.getByName("main").java.srcDir("src/main/kotlin")
                 it.getByName("test").java.srcDir("src/test/kotlin")
+            }
+        }
+        if (kotlinConfig.coroutines) {
+            project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
+                config.defaultDependencies {
+                    val dep = project.dependencies.create(LIBRARY_COROUTINES_ANDROID) as ExternalModuleDependency
+                    dep.version(kotlinConfig.coroutinesVersion)
+                    it.add(dep)
+                }
             }
         }
     }

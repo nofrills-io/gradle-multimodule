@@ -19,6 +19,8 @@ package io.nofrills.multimodule
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.PublishingExtension
@@ -26,17 +28,26 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 abstract class BasePlugin : Plugin<Project> {
     companion object {
+        internal const val LIBRARY_COROUTINES_ANDROID = "org.jetbrains.kotlinx:kotlinx-coroutines-android"
+        private const val LIBRARY_COROUTINES_CORE = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+        private const val LIBRARY_KOTLIN_REFLECT = "org.jetbrains.kotlin:kotlin-reflect"
+        private const val LIBRARY_KOTLIN_STDLIB = "org.jetbrains.kotlin:kotlin-stdlib"
+        private const val LIBRARY_KOTLIN_STDLIB_JDK8 = "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
         internal const val PLUGIN_ID_ANDROID_APP = "com.android.application"
         internal const val PLUGIN_ID_ANDROID_LIBRARY = "com.android.library"
         internal const val PLUGIN_ID_DOKKA = "org.jetbrains.dokka"
         internal const val PLUGIN_ID_JACOCO = "jacoco"
         internal const val PLUGIN_ID_JAVA_LIBRARY = "java-library"
         internal const val PLUGIN_ID_KOTLIN_ANDROID = "org.jetbrains.kotlin.android"
+        internal const val PLUGIN_ID_KOTLIN_ANDROID_EXTENSIONS = "org.jetbrains.kotlin.android.extensions"
         internal const val PLUGIN_ID_KOTLIN_JVM = "org.jetbrains.kotlin.jvm"
+        internal const val PLUGIN_ID_KOTLIN_KAPT = "org.jetbrains.kotlin.kapt"
         private const val PLUGIN_ID_MAVEN_PUBLISH = "maven-publish"
 
         private const val SUBMODULE_EXT_NAME = "submodule"
@@ -53,7 +64,7 @@ abstract class BasePlugin : Plugin<Project> {
     protected abstract fun applyJacoco(project: Project, jacocoAction: Action<JacocoReport>)
 
     /** Apply the kotlin plugin appropriate for the module. */
-    protected abstract fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>)
+    protected abstract fun applyKotlin(project: Project, kotlinConfig: KotlinConfig)
 
     /** Apply the main plugin for the module. */
     protected abstract fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension)
@@ -71,8 +82,42 @@ abstract class BasePlugin : Plugin<Project> {
 
         applyPlugin(project, multimoduleExtension)
 
-        multimoduleExtension.kotlinAction?.let {
-            applyKotlin(project, it)
+        multimoduleExtension.kotlinConfig?.let { kotlinConfig ->
+            applyKotlin(project, kotlinConfig)
+            if (kotlinConfig.kapt) {
+                project.pluginManager.apply(PLUGIN_ID_KOTLIN_KAPT)
+            }
+            project.configureKotlinTasks(kotlinConfig)
+            if (kotlinConfig.coroutines) {
+                project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
+                    config.defaultDependencies {
+                        val dep = project.dependencies.create(LIBRARY_COROUTINES_CORE) as ExternalModuleDependency
+                        dep.version(kotlinConfig.coroutinesVersion)
+                        it.add(dep)
+                    }
+                }
+            }
+
+            val kotlinVersion by lazy { project.getKotlinPluginVersion() }
+            if (kotlinConfig.stdLib) {
+                val stdLib = if (kotlinConfig.jvmTarget == "1.6") {
+                    LIBRARY_KOTLIN_STDLIB
+                } else {
+                    LIBRARY_KOTLIN_STDLIB_JDK8
+                }
+                project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
+                    config.defaultDependencies {
+                        it.add(project.dependencies.create("$stdLib:$kotlinVersion"))
+                    }
+                }
+            }
+            if (kotlinConfig.reflect) {
+                project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
+                    config.defaultDependencies {
+                        it.add(project.dependencies.create("$LIBRARY_KOTLIN_REFLECT:$kotlinVersion"))
+                    }
+                }
+            }
         }
 
         multimoduleExtension.jacocoAction?.let { jacocoAction ->
@@ -116,10 +161,18 @@ abstract class BasePlugin : Plugin<Project> {
         }
     }
 
-    protected fun Project.configureKotlinTasks(kotlinConfigAction: Action<KotlinConfig>) {
-        project.tasks.withType(KotlinCompile::class.java).configureEach {
-            val kotlinConfig = KotlinConfig(it.kotlinOptions)
-            kotlinConfigAction.execute(kotlinConfig)
+    private fun Project.configureKotlinTasks(kotlinConfig: KotlinConfig) {
+        project.tasks.withType(KotlinCompile::class.java).configureEach { kotlinCompile ->
+            kotlinCompile.kotlinOptions.apply {
+                kotlinConfig.allWarningsAsErrors?.let { allWarningsAsErrors = it }
+                apiVersion = kotlinConfig.apiVersion
+                kotlinConfig.freeCompilerArgs?.let { freeCompilerArgs = it }
+                jvmTarget = kotlinConfig.jvmTarget
+                languageVersion = kotlinConfig.languageVersion
+                kotlinConfig.suppressWarnings?.let { suppressWarnings = it }
+                kotlinConfig.useIR?.let { useIR = it }
+                kotlinConfig.verbose?.let { verbose = it }
+            }
         }
     }
 }

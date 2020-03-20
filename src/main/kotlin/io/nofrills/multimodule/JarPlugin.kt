@@ -18,9 +18,11 @@ package io.nofrills.multimodule
 
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublicationContainer
+import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -40,14 +42,13 @@ class JarPlugin : BasePlugin() {
             }
             jacocoAction.execute(jacoco)
         }
-        project.tasks.named("check") {
+        project.tasks.named(CHECK_TASK_NAME) {
             it.dependsOn(project.tasks.withType(JacocoReport::class.java))
         }
     }
 
-    override fun applyKotlin(project: Project, kotlinConfigAction: Action<KotlinConfig>) {
+    override fun applyKotlin(project: Project, kotlinConfig: KotlinConfig) {
         project.pluginManager.apply(PLUGIN_ID_KOTLIN_JVM)
-        project.configureKotlinTasks(kotlinConfigAction)
     }
 
     override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
@@ -103,7 +104,7 @@ class JarPlugin : BasePlugin() {
     private fun getSourcesJarTaskProvider(project: Project): TaskProvider<Jar> {
         return project.tasks.register("sourcesJar", Jar::class.java) { jar ->
             val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
-            jar.from(sourceSets.getByName("main").allSource)
+            jar.from(sourceSets.getByName(MAIN_SOURCE_SET_NAME).allSource)
             jar.archiveClassifier.set("sources")
         }
     }

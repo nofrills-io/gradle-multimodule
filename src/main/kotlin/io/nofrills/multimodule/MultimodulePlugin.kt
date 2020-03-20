@@ -21,11 +21,11 @@ import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import java.io.File
 
@@ -73,7 +73,7 @@ abstract class MultimoduleExtension(project: Project) {
     internal var dokkaAction: Action<DokkaTask>? = null
     internal var jacocoAction: Action<JacocoReport>? = null
     internal val javaConfig: JavaConfig = project.objects.newInstance(JavaConfig::class.java)
-    internal var kotlinAction: Action<KotlinConfig>? = null
+    internal var kotlinConfig: KotlinConfig? = null
     internal var publishConfig: PublishConfig? = null
 
     fun android(action: Action<TestedExtension>) {
@@ -93,7 +93,8 @@ abstract class MultimoduleExtension(project: Project) {
     }
 
     fun kotlin(action: Action<KotlinConfig>) {
-        kotlinAction = action
+        val config = kotlinConfig ?: KotlinConfig().also { kotlinConfig = it }
+        action.execute(config)
     }
 
     fun publish(action: Action<PublishConfig>) {
@@ -104,15 +105,28 @@ abstract class MultimoduleExtension(project: Project) {
     }
 }
 
-open class KotlinConfig(private val kotlinJvmOptions: KotlinJvmOptions) : KotlinJvmOptions by kotlinJvmOptions {
-    init {
-        kotlinJvmOptions.jvmTarget = "1.8"
-    }
-}
-
 open class JavaConfig {
     var sourceCompatibility = JavaVersion.VERSION_1_8
     var targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+open class KotlinConfig {
+    var androidExtensions: Boolean = true
+    var coroutines: Boolean = false
+    var coroutinesVersion: Action<MutableVersionConstraint> = Action { it.prefer("1.3.5") }
+    var kapt: Boolean = false
+    var reflect: Boolean = false
+    var stdLib: Boolean = true
+
+    // options corresponding to [org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions]
+    var allWarningsAsErrors: Boolean? = null
+    var apiVersion: String? = null
+    var freeCompilerArgs: List<String>? = null
+    var jvmTarget: String = "1.8"
+    var languageVersion: String? = null
+    var suppressWarnings: Boolean? = null
+    var useIR: Boolean? = null
+    var verbose: Boolean? = null
 }
 
 open class PublishConfig {

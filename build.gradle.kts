@@ -1,6 +1,6 @@
 buildscript {
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin", Ver.Kotlin::execute)
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin", Ver.kotlin::execute)
     }
 }
 
@@ -18,13 +18,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.android.tools.build:gradle", Ver.AndroidBuildTools)
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin", Ver.Kotlin)
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8", Ver.Kotlin)
-    implementation("org.jetbrains.dokka:dokka-gradle-plugin", Ver.Dokka)
+    implementation("com.android.tools.build:gradle", Ver.androidBuildTools)
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin", Ver.kotlin)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8", Ver.kotlin)
+    implementation("org.jetbrains.dokka:dokka-gradle-plugin", Ver.dokka)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test", Ver.Kotlin)
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit", Ver.Kotlin)
+    testImplementation("org.jetbrains.kotlin:kotlin-test", Ver.kotlin)
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit", Ver.kotlin)
 }
 
 gradlePlugin {
