@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2020-03-23
+### Added
+- Option to include plugins: kotlin android extensions and kapt 
+- Option to include kotlin libraries: coroutines, kotlin-stdlib, kotlin-reflect
+
+### Removed
+- Some options from kotlin configuration were removed
+
 ## [0.2.1] - 2020-03-17
 ### Changed
 - Allow the clients of the plugin to overwrite version numbers of the plugins used in multimodule (i.e kotlin, dokka and android gradle plugin)

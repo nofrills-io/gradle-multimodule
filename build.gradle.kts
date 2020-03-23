@@ -74,7 +74,7 @@ val check by tasks.getting(Task::class) {
 
 
 group = "io.nofrills"
-version = "0.2.2-dev"
+version = "0.3.0"
 
 publishing {
     repositories {
