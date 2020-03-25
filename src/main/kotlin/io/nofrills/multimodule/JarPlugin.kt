@@ -64,8 +64,8 @@ class JarPlugin : BasePlugin() {
         val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project) }
         createPublication(
             project, publishConfig, publications,
-            docsJarTask = docsJarTaskProvider,
-            sourcesJarTask = sourcesJarTaskProvider,
+            lazyDocsJarTask = docsJarTaskProvider,
+            lazySourcesJarTask = sourcesJarTaskProvider,
             componentName = "java",
             publicationName = "jar"
         )

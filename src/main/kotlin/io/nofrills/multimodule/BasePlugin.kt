@@ -71,9 +71,9 @@ abstract class BasePlugin : Plugin<Project> {
 
     /** Create and configure Maven publications for the module. */
     protected abstract fun applyPublications(
-        project: Project,
-        publishConfig: PublishConfig,
-        publications: PublicationContainer
+            project: Project,
+            publishConfig: PublishConfig,
+            publications: PublicationContainer
     )
 
     final override fun apply(project: Project) {
@@ -141,22 +141,20 @@ abstract class BasePlugin : Plugin<Project> {
     }
 
     protected fun createPublication(
-        project: Project,
-        publishConfig: PublishConfig,
-        publications: PublicationContainer,
-        docsJarTask: Lazy<TaskProvider<Jar>>,
-        sourcesJarTask: Lazy<TaskProvider<Jar>>,
-        componentName: String,
-        publicationName: String
+            project: Project,
+            publishConfig: PublishConfig,
+            publications: PublicationContainer,
+            lazyDocsJarTask: Lazy<TaskProvider<Jar>>,
+            lazySourcesJarTask: Lazy<TaskProvider<Jar>>,
+            componentName: String,
+            publicationName: String
     ) {
+        val docsProvider = if (publishConfig.withDocs) lazyDocsJarTask.value else null
+        val sourcesProvider = if (publishConfig.withSources) lazySourcesJarTask.value else null
         publications.create(publicationName, MavenPublication::class.java) { mavenPublication ->
             mavenPublication.from(project.components.getByName(componentName))
-            if (publishConfig.withDocs) {
-                mavenPublication.artifact(docsJarTask.value.get())
-            }
-            if (publishConfig.withSources) {
-                mavenPublication.artifact(sourcesJarTask.value.get())
-            }
+            docsProvider?.let { mavenPublication.artifact(it.get()) }
+            sourcesProvider?.let { mavenPublication.artifact(it.get()) }
             publishConfig.mavenPomAction?.let { mavenPublication.pom(it) }
         }
     }

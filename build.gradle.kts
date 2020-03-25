@@ -12,6 +12,17 @@ plugins {
 
 apply(plugin = "org.jetbrains.kotlin.jvm")
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java) {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
 repositories {
     jcenter()
     google()
@@ -74,7 +85,7 @@ val check by tasks.getting(Task::class) {
 
 
 group = "io.nofrills"
-version = "0.3.0"
+version = "0.3.1"
 
 publishing {
     repositories {

@@ -33,6 +33,7 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
 import java.io.File
+import java.util.concurrent.Callable
 
 abstract class AndroidPlugin : BasePlugin() {
     protected abstract val androidPluginId: String
@@ -52,8 +53,8 @@ abstract class AndroidPlugin : BasePlugin() {
 
         getBaseVariants(project).forEach { variant ->
             val jacocoReportTask = project.tasks.register(
-                "jacoco${variant.name.capitalize()}TestReport",
-                JacocoReport::class.java
+                    "jacoco${variant.name.capitalize()}TestReport",
+                    JacocoReport::class.java
             ) { jacoco ->
                 jacoco.dependsOn(project.tasks.withType(Test::class.java))
                 jacoco.executionData.setFrom(project.fileTree(project.buildDir) {
@@ -110,9 +111,9 @@ abstract class AndroidPlugin : BasePlugin() {
     }
 
     final override fun applyPublications(
-        project: Project,
-        publishConfig: PublishConfig,
-        publications: PublicationContainer
+            project: Project,
+            publishConfig: PublishConfig,
+            publications: PublicationContainer
     ) {
         val variant = getDefaultPublishVariant(project)
         if (variant != null) {
@@ -120,11 +121,11 @@ abstract class AndroidPlugin : BasePlugin() {
             val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project, variant) }
 
             createPublication(
-                project, publishConfig, publications,
-                docsJarTask = docsJarTaskProvider,
-                sourcesJarTask = sourcesJarTaskProvider,
-                componentName = getComponentNameForVariant(variant),
-                publicationName = getPublicationNameForVariant(variant)
+                    project, publishConfig, publications,
+                    lazyDocsJarTask = docsJarTaskProvider,
+                    lazySourcesJarTask = sourcesJarTaskProvider,
+                    componentName = getComponentNameForVariant(variant),
+                    publicationName = getPublicationNameForVariant(variant)
             )
         } else {
             project.logger.warn("Cannot create publication for ${project}: default publish config not found (check 'android.defaultPublishConfig' setting).")
@@ -148,9 +149,22 @@ abstract class AndroidPlugin : BasePlugin() {
         project.pluginManager.apply(PLUGIN_ID_DOKKA)
 
         val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokka ->
-            dokka.configuration.androidVariants = listOf(variant.name)
+            dokka.configuration.kotlinTasks(Callable { emptyList<Any>() })
             dokka.outputDirectory = File(project.buildDir, "dokka").path
             dokka.outputFormat = DOKKA_FORMAT
+            dokka.disableAutoconfiguration = true
+            dokka.dependsOn(dokka.defaultKotlinTasks())
+
+            dokka.doFirst {
+                dokka.configuration.classpath = variant.javaCompileProvider.get().classpath.map { it.path }
+                variant.sourceSets.map { it.javaDirectories }
+                        .flatten()
+                        .forEach { src ->
+                            dokka.configuration.sourceRoot(Action {
+                                it.path = src.path
+                            })
+                        }
+            }
         }
 
         return project.tasks.register("${variant.name}DokkaJar", Jar::class.java) { jar ->
