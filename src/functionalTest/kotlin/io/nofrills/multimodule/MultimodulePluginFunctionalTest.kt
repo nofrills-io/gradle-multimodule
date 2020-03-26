@@ -28,31 +28,6 @@ import kotlin.test.assertTrue
 
 class MultimodulePluginFunctionalTest {
     @Test
-    fun `additional build type`() {
-        val result = testCase(
-            """
-            multimodule {
-                android {
-                    compileSdkVersion(28)
-                    buildTypes {
-                        create("mock") {
-                        }
-                        getByName("release") {
-                            minifyEnabled = false
-                        }
-                    }
-                }
-            }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all")
-        )
-
-        // Verify the result
-        assertTrue(result.output.contains("compileDebugJava"))
-        assertTrue(result.output.contains("compileMockJava"))
-        assertTrue(result.output.contains("compileReleaseJava"))
-    }
-
-    @Test
     fun `jar kotlin plugin`() {
         val result = testCase(
             """

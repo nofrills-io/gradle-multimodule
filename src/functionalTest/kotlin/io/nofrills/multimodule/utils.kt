@@ -7,9 +7,19 @@ import kotlin.test.assertTrue
 
 internal const val BuildFile = "build.gradle.kts"
 internal const val FunctionalTestPath = "build/functionalTest"
+internal const val aar = "aar"
+internal const val apk = "apk"
+internal const val jar = "jar"
 
+/** Creates a test project with a number of submodules.
+ * @param include The sub-projects to be included ("aar", "apk" and/or "jar").
+ * @param multimoduleContent The content to put in root project, inside the `multimodule` block.
+ * @param submoduleContent The content to put in sub-projects, inside the `submodule` block.
+ * @return A pair, where first element is the root project directory,
+ *  and the second element is a map of sub-projects (sub_project_name; sub_project_dir).
+ */
 internal fun makeTestProject(
-    include: List<String> = listOf("aar", "apk", "jar"),
+    include: Set<String> = setOf(aar, apk, jar),
     multimoduleContent: String = "",
     submoduleContent: String = ""
 ): Pair<File, Map<String, File>> {
@@ -74,8 +84,4 @@ internal fun BuildResult.assertContains(other: String): BuildResult {
 internal fun BuildResult.assertContains(other: Regex): BuildResult {
     assertTrue(output.contains(other))
     return this
-}
-
-internal enum class ProjectType {
-    Aar, Apk, Jar
 }
