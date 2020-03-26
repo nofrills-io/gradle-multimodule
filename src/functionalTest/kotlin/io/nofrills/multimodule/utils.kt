@@ -3,6 +3,7 @@ package io.nofrills.multimodule
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import java.io.File
+import javax.annotation.RegEx
 import kotlin.test.assertTrue
 
 internal const val BuildFile = "build.gradle.kts"
@@ -84,4 +85,8 @@ internal fun BuildResult.assertContains(other: String): BuildResult {
 internal fun BuildResult.assertContains(other: Regex): BuildResult {
     assertTrue(output.contains(other))
     return this
+}
+
+internal fun BuildResult.assertLine(@RegEx lineRegex: String): BuildResult {
+    return assertContains(Regex(lineRegex, RegexOption.MULTILINE))
 }

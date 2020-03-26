@@ -1,19 +1,11 @@
 package io.nofrills.multimodule
 
-import org.junit.After
-import java.io.File
 import kotlin.test.Test
 
 @Suppress("FunctionName")
-class AndroidActionTests {
+class AndroidActionTests : BaseActionTest() {
     companion object {
         private const val missingCompileSdkVersion = "compileSdkVersion is not specified. Please add it to build.gradle"
-        private val androidTypes = setOf(aar, apk)
-    }
-
-    @After
-    fun tearDown() {
-        File(FunctionalTestPath).deleteRecursively()
     }
 
     @Test
@@ -32,7 +24,7 @@ class AndroidActionTests {
     fun `applies android plugins`() {
         val (_, subProjects) = makeTestProject(
             androidTypes,
-            multimoduleContent = "android { compileSdkVersion(28) }"
+            multimoduleContent = baseAndroidConfig
         )
 
         arrayOf(aar to "library", apk to "application").forEach { (projectType, pluginName) ->
@@ -51,8 +43,8 @@ class AndroidActionTests {
             )
 
             dir.runGradle("testCase")
-                .assertContains(Regex("^$pluginName$", RegexOption.MULTILINE))
-                .assertContains(Regex("^extension 'android'$", RegexOption.MULTILINE))
+                .assertLine("^$pluginName$")
+                .assertLine("^extension 'android'$")
         }
     }
 
@@ -70,7 +62,7 @@ class AndroidActionTests {
 
         androidTypes.forEach { projectType ->
             val dir = subProjects.getValue(projectType)
-            dir.runGradle("tasks", "--all").assertContains(Regex("^assembleMock ", RegexOption.MULTILINE))
+            dir.runGradle("tasks", "--all").assertLine("^assembleMock ")
         }
     }
 }
