@@ -16,7 +16,6 @@
 
 package io.nofrills.multimodule
 
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
 import org.gradle.api.plugins.JavaPluginConvention
@@ -27,12 +26,13 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
 import java.io.File
 
 class JarPlugin : BasePlugin() {
-    override fun applyJacoco(project: Project, jacocoAction: Action<JacocoReport>) {
+    override fun applyJacoco(project: Project, jacocoConfig: JacocoConfig) {
         project.pluginManager.apply(PLUGIN_ID_JACOCO)
         project.tasks.withType(JacocoReport::class.java) { jacoco ->
             jacoco.dependsOn(project.tasks.withType(Test::class.java))
@@ -40,8 +40,9 @@ class JarPlugin : BasePlugin() {
                 it.html.isEnabled = true
                 it.xml.isEnabled = true
             }
-            jacocoAction.execute(jacoco)
+            jacocoConfig.jacocoTaskAction?.execute(jacoco)
         }
+        jacocoConfig.jacocoPluginAction?.execute(project.extensions.getByType(JacocoPluginExtension::class.java))
         project.tasks.named(CHECK_TASK_NAME) {
             it.dependsOn(project.tasks.withType(JacocoReport::class.java))
         }

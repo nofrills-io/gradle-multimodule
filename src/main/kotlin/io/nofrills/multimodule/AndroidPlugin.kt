@@ -29,6 +29,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
@@ -42,7 +43,7 @@ abstract class AndroidPlugin : BasePlugin() {
     protected abstract fun getComponentNameForVariant(variant: BaseVariant): String
     protected abstract fun getPublicationNameForVariant(variant: BaseVariant): String
 
-    override fun applyJacoco(project: Project, jacocoAction: Action<JacocoReport>) {
+    override fun applyJacoco(project: Project, jacocoConfig: JacocoConfig) {
         project.pluginManager.apply(PLUGIN_ID_JACOCO)
         project.tasks.withType(Test::class.java) { test ->
             test.extensions.configure(JacocoTaskExtension::class.java) {
@@ -53,8 +54,8 @@ abstract class AndroidPlugin : BasePlugin() {
 
         getBaseVariants(project).forEach { variant ->
             val jacocoReportTask = project.tasks.register(
-                    "jacoco${variant.name.capitalize()}TestReport",
-                    JacocoReport::class.java
+                "jacoco${variant.name.capitalize()}TestReport",
+                JacocoReport::class.java
             ) { jacoco ->
                 jacoco.dependsOn(project.tasks.withType(Test::class.java))
                 jacoco.executionData.setFrom(project.fileTree(project.buildDir) {
@@ -68,9 +69,9 @@ abstract class AndroidPlugin : BasePlugin() {
                 jacoco.sourceDirectories.setFrom(variant.sourceSets.map { it.javaDirectories })
                 jacoco.classDirectories.setFrom(variant.getCompileClasspath(null).filter { it.extension != "jar" })
 
-                jacocoAction.execute(jacoco)
+                jacocoConfig.jacocoTaskAction?.execute(jacoco)
             }
-
+            jacocoConfig.jacocoPluginAction?.execute(project.extensions.getByType(JacocoPluginExtension::class.java))
             project.tasks.named(CHECK_TASK_NAME).dependsOn(jacocoReportTask)
         }
     }
@@ -111,9 +112,9 @@ abstract class AndroidPlugin : BasePlugin() {
     }
 
     final override fun applyPublications(
-            project: Project,
-            publishConfig: PublishConfig,
-            publications: PublicationContainer
+        project: Project,
+        publishConfig: PublishConfig,
+        publications: PublicationContainer
     ) {
         val variant = getDefaultPublishVariant(project)
         if (variant != null) {
@@ -121,11 +122,11 @@ abstract class AndroidPlugin : BasePlugin() {
             val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project, variant) }
 
             createPublication(
-                    project, publishConfig, publications,
-                    lazyDocsJarTask = docsJarTaskProvider,
-                    lazySourcesJarTask = sourcesJarTaskProvider,
-                    componentName = getComponentNameForVariant(variant),
-                    publicationName = getPublicationNameForVariant(variant)
+                project, publishConfig, publications,
+                lazyDocsJarTask = docsJarTaskProvider,
+                lazySourcesJarTask = sourcesJarTaskProvider,
+                componentName = getComponentNameForVariant(variant),
+                publicationName = getPublicationNameForVariant(variant)
             )
         } else {
             project.logger.warn("Cannot create publication for ${project}: default publish config not found (check 'android.defaultPublishConfig' setting).")
@@ -158,12 +159,12 @@ abstract class AndroidPlugin : BasePlugin() {
             dokka.doFirst {
                 dokka.configuration.classpath = variant.javaCompileProvider.get().classpath.map { it.path }
                 variant.sourceSets.map { it.javaDirectories }
-                        .flatten()
-                        .forEach { src ->
-                            dokka.configuration.sourceRoot(Action {
-                                it.path = src.path
-                            })
-                        }
+                    .flatten()
+                    .forEach { src ->
+                        dokka.configuration.sourceRoot(Action {
+                            it.path = src.path
+                        })
+                    }
             }
         }
 

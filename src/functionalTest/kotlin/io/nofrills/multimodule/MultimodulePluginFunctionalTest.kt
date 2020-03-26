@@ -157,67 +157,6 @@ class MultimodulePluginFunctionalTest {
     }
 
     @Test
-    fun `jacoco jar`() {
-        val result = testCase(
-            """
-            multimodule {
-                jacoco {}
-            }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:tasks", "--all")
-        )
-
-        // Verify the result
-        assertTrue(result.output.contains("jacocoTestReport"))
-    }
-
-    @Test
-    fun `jacoco aar`() {
-        val result = testCase(
-            """
-            multimodule {
-                android {
-                    compileSdkVersion(28)
-                }
-                jacoco {}
-            }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all")
-        )
-
-        // Verify the result
-        assertTrue(result.output.contains("jacocoDebugTestReport"))
-        assertTrue(result.output.contains("jacocoReleaseTestReport"))
-    }
-
-    @Test
-    fun `jacoco aar with flavors`() {
-        val result = testCase(
-            """
-            multimodule {
-                android {
-                    compileSdkVersion(28)
-                    flavorDimensions "api"
-                    productFlavors {
-                        staging {
-                            dimension "api"
-                        }
-                        prod {
-                            dimension "api"
-                        }
-                    }
-                }
-                jacoco {}
-            }
-        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:tasks", "--all")
-        )
-
-        // Verify the result
-        assertTrue(result.output.contains("jacocoStagingDebugTestReport"))
-        assertTrue(result.output.contains("jacocoProdDebugTestReport"))
-        assertTrue(result.output.contains("jacocoStagingReleaseTestReport"))
-        assertTrue(result.output.contains("jacocoProdReleaseTestReport"))
-    }
-
-    @Test
     fun `coroutines jar`() {
         val result = testCase(
                 """

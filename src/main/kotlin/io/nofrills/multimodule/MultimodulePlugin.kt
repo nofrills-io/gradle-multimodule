@@ -24,6 +24,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.publish.maven.MavenPom
+import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
@@ -71,7 +72,7 @@ class MultimodulePlugin : Plugin<Project> {
 abstract class MultimoduleExtension(project: Project) {
     internal var androidAction: Action<TestedExtension>? = null
     internal var dokkaAction: Action<DokkaTask>? = null
-    internal var jacocoAction: Action<JacocoReport>? = null
+    internal var jacocoAction: Action<JacocoConfig>? = null
     internal val javaConfig: JavaConfig = project.objects.newInstance(JavaConfig::class.java)
     internal var kotlinConfig: KotlinConfig? = null
     internal var publishConfig: PublishConfig? = null
@@ -84,7 +85,7 @@ abstract class MultimoduleExtension(project: Project) {
         dokkaAction = action
     }
 
-    fun jacoco(action: Action<JacocoReport>) {
+    fun jacoco(action: Action<JacocoConfig>) {
         jacocoAction = action
     }
 
@@ -102,6 +103,19 @@ abstract class MultimoduleExtension(project: Project) {
             publishConfig = it
         }
         action.execute(config)
+    }
+}
+
+open class JacocoConfig {
+    internal var jacocoPluginAction: Action<JacocoPluginExtension>? = null
+    internal var jacocoTaskAction: Action<JacocoReport>? = null
+
+    fun jacocoPlugin(action: Action<JacocoPluginExtension>) {
+        jacocoPluginAction = action
+    }
+
+    fun jacocoTask(action: Action<JacocoReport>) {
+        jacocoTaskAction = action
     }
 }
 

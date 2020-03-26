@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - 2020-03-26
 ### Changed
 - Kotlin Android extensions plugin is now not enabled by default
-- More tests
+- Jacoco configuration: you can configure both the plugin, and tasks
 
 ### Fixed
 - kotlin libraries were incorrectly added as dependencies
+
+### Added
+- more tests
 
 ## [0.3.1] - 2020-03-25
 ### Changed
