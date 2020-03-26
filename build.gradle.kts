@@ -79,15 +79,13 @@ val functionalTest by tasks.creating(Test::class) {
     classpath = functionalTestSourceSet.runtimeClasspath
 }
 
+tasks.jacocoTestReport {
+    dependsOn("test")
+}
+
 val check by tasks.getting(Task::class) {
-    // Run the functional tests as part of `check`
-    dependsOn(functionalTest)
+    dependsOn(functionalTest, tasks.jacocoTestReport)
 }
-
-val jacocoTestReport by tasks.getting(Task::class) {
-    dependsOn(check)
-}
-
 
 group = "io.nofrills"
 version = "0.3.1"
