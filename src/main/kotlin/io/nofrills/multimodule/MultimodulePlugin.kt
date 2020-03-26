@@ -111,7 +111,7 @@ open class JavaConfig {
 }
 
 open class KotlinConfig {
-    var androidExtensions: Boolean = true
+    var androidExtensions: Boolean = false
     var coroutines: Boolean = false
     var coroutinesVersion: Action<MutableVersionConstraint> = Action { it.prefer("1.3.5") }
     var kapt: Boolean = false

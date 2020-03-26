@@ -242,6 +242,53 @@ class MultimodulePluginFunctionalTest {
         assertTrue(result.output.contains("jacocoProdReleaseTestReport"))
     }
 
+    @Test
+    fun `coroutines jar`() {
+        val result = testCase(
+                """
+            multimodule {
+                kotlin {
+                    coroutines = true
+                    stdLib = true
+                    reflect = true
+                }
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.jar\") }", listOf(":lib:dependencies")
+        )
+
+        // Verify the result
+        assertTrue(result.output.contains("org.jetbrains.kotlinx:kotlinx-coroutines-core"))
+        assertTrue(result.output.contains("org.jetbrains.kotlin:kotlin-stdlib-jdk8"))
+        assertTrue(result.output.contains("org.jetbrains.kotlin:kotlin-reflect"))
+    }
+
+    @Test
+    fun `coroutines aar`() {
+        val result = testCase(
+                """
+            multimodule {
+                android {
+                    compileSdkVersion(28)
+                }
+                kotlin {
+                    androidExtensions = true
+                    jvmTarget = 6
+                    coroutines = true
+                    stdLib = true
+                    reflect = true
+                }
+            }
+        """.trimIndent(), "plugins { id(\"io.nofrills.multimodule.aar\") }", listOf(":lib:dependencies")
+        )
+
+        // Verify the result
+        assertTrue(result.output.contains("org.jetbrains.kotlinx:kotlinx-coroutines-core"))
+        assertTrue(result.output.contains("org.jetbrains.kotlinx:kotlinx-coroutines-android"))
+        assertTrue(result.output.contains("org.jetbrains.kotlin:kotlin-stdlib"))
+        assertTrue(result.output.contains("org.jetbrains.kotlin:kotlin-reflect"))
+        assertTrue(result.output.contains("org.jetbrains.kotlin:kotlin-android-extensions-runtime"))
+    }
+
     private fun testCase(
         multimoduleConfig: String,
         submoduleBuildConfig: String,

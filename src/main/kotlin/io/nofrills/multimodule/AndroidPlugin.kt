@@ -89,7 +89,7 @@ abstract class AndroidPlugin : BasePlugin() {
         }
         if (kotlinConfig.coroutines) {
             project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
-                config.defaultDependencies {
+                config.withDependencies {
                     val dep = project.dependencies.create(LIBRARY_COROUTINES_ANDROID) as ExternalModuleDependency
                     dep.version(kotlinConfig.coroutinesVersion)
                     it.add(dep)

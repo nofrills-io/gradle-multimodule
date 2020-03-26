@@ -7,6 +7,7 @@ buildscript {
 plugins {
     `java-gradle-plugin`
     `maven-publish`
+    id("jacoco")
     id("com.gradle.plugin-publish") version "0.10.1"
 }
 
@@ -81,6 +82,10 @@ val functionalTest by tasks.creating(Test::class) {
 val check by tasks.getting(Task::class) {
     // Run the functional tests as part of `check`
     dependsOn(functionalTest)
+}
+
+val jacocoTestReport by tasks.getting(Task::class) {
+    dependsOn(check)
 }
 
 

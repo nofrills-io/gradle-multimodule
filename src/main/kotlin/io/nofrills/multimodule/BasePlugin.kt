@@ -90,7 +90,7 @@ abstract class BasePlugin : Plugin<Project> {
             project.configureKotlinTasks(kotlinConfig)
             if (kotlinConfig.coroutines) {
                 project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
-                    config.defaultDependencies {
+                    config.withDependencies {
                         val dep = project.dependencies.create(LIBRARY_COROUTINES_CORE) as ExternalModuleDependency
                         dep.version(kotlinConfig.coroutinesVersion)
                         it.add(dep)
@@ -106,14 +106,16 @@ abstract class BasePlugin : Plugin<Project> {
                     LIBRARY_KOTLIN_STDLIB_JDK8
                 }
                 project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
-                    config.defaultDependencies {
-                        it.add(project.dependencies.create("$stdLib:$kotlinVersion"))
+                    config.withDependencies { dependencySet ->
+                        val dep = project.dependencies.create(stdLib) as ExternalModuleDependency
+                        kotlinVersion?.let { ver -> dep.version { it.require(ver) } }
+                        dependencySet.add(dep)
                     }
                 }
             }
             if (kotlinConfig.reflect) {
                 project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
-                    config.defaultDependencies {
+                    config.withDependencies {
                         it.add(project.dependencies.create("$LIBRARY_KOTLIN_REFLECT:$kotlinVersion"))
                     }
                 }
