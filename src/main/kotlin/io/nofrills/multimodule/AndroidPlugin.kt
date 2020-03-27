@@ -150,6 +150,7 @@ abstract class AndroidPlugin : BasePlugin() {
         project.pluginManager.apply(PLUGIN_ID_DOKKA)
 
         val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokka ->
+            dokka.group = "documentation"
             dokka.configuration.kotlinTasks(Callable { emptyList<Any>() })
             dokka.outputDirectory = File(project.buildDir, "dokka").path
             dokka.outputFormat = DOKKA_FORMAT
@@ -169,6 +170,7 @@ abstract class AndroidPlugin : BasePlugin() {
         }
 
         return project.tasks.register("${variant.name}DokkaJar", Jar::class.java) { jar ->
+            jar.group = "documentation"
             jar.from(dokkaTaskProvider.get())
             jar.archiveClassifier.set("javadoc")
         }
@@ -176,12 +178,16 @@ abstract class AndroidPlugin : BasePlugin() {
 
     private fun getJavadocJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
         val javadocProvider = project.tasks.register("${variant.name}Javadoc", Javadoc::class.java) { javadoc ->
-            javadoc.source(variant.sourceSets.map { it.javaDirectories })
-            javadoc.classpath += project.files(project.extensions.getByType(TestedExtension::class.java).bootClasspath)
-            javadoc.classpath += variant.javaCompileProvider.get().classpath
+            javadoc.group = "documentation"
+            javadoc.doFirst {
+                javadoc.source(variant.sourceSets.map { it.javaDirectories })
+                javadoc.classpath += project.files(project.extensions.getByType(TestedExtension::class.java).bootClasspath)
+                javadoc.classpath += variant.javaCompileProvider.get().classpath
+            }
         }
         return project.tasks.register("${variant.name}JavadocJar", Jar::class.java).apply {
             configure { jar ->
+                jar.group = "documentation"
                 jar.dependsOn(javadocProvider)
                 jar.archiveClassifier.set("javadoc")
                 jar.from(javadocProvider.get().destinationDir)
