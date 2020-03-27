@@ -227,6 +227,25 @@ class KotlinActionTests : BaseActionTest() {
     }
 
     @Test
+    fun `applies kotlin stdlib library jdk_1_8`() {
+        val (_, subProjects) = makeTestProject(
+            multimoduleContent = """
+            $baseAndroidConfig
+            kotlin {
+                stdLib = true
+                jvmTarget = "1.8"
+            }
+        """.trimIndent()
+        )
+
+        val kotlinVersion = KotlinVersion.CURRENT.toString()
+        subProjects.forEach { (_, p) ->
+            p.runGradle("dependencies")
+                .assertContains("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+        }
+    }
+
+    @Test
     fun `skips kotlin stdlib library`() {
         val (_, subProjects) = makeTestProject(
             multimoduleContent = """
