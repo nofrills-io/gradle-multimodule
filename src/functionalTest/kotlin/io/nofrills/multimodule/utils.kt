@@ -4,6 +4,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import java.io.File
 import javax.annotation.RegEx
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 internal const val BuildFile = "build.gradle.kts"
@@ -79,6 +80,11 @@ internal fun File.failGradle(vararg runnerArgs: String): BuildResult {
 
 internal fun BuildResult.assertContains(other: String): BuildResult {
     assertTrue(output.contains(other))
+    return this
+}
+
+internal fun BuildResult.assertNotContains(other: String): BuildResult {
+    assertFalse(output.contains(other))
     return this
 }
 
