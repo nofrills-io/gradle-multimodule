@@ -142,7 +142,7 @@ abstract class BasePlugin : Plugin<Project> {
         }
     }
 
-    protected fun createPublication(
+    protected fun registerPublication(
             project: Project,
             publishConfig: PublishConfig,
             publications: PublicationContainer,
@@ -153,7 +153,7 @@ abstract class BasePlugin : Plugin<Project> {
     ) {
         val docsProvider = if (publishConfig.withDocs) lazyDocsJarTask.value else null
         val sourcesProvider = if (publishConfig.withSources) lazySourcesJarTask.value else null
-        publications.create(publicationName, MavenPublication::class.java) { mavenPublication ->
+        publications.register(publicationName, MavenPublication::class.java) { mavenPublication ->
             mavenPublication.from(project.components.getByName(componentName))
             docsProvider?.let { mavenPublication.artifact(it.get()) }
             sourcesProvider?.let { mavenPublication.artifact(it.get()) }

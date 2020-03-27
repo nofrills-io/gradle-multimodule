@@ -121,7 +121,7 @@ abstract class AndroidPlugin : BasePlugin() {
             val docsJarTaskProvider = lazy { getDocsJarTaskProvider(project, variant) }
             val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project, variant) }
 
-            createPublication(
+            registerPublication(
                 project, publishConfig, publications,
                 lazyDocsJarTask = docsJarTaskProvider,
                 lazySourcesJarTask = sourcesJarTaskProvider,

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2020-03-27
+### Changed/Fixed
+- minimum required version of Android build tools plugin is 3.6.0 (needed for publishing configuration)
+
 ## [0.4.0] - 2020-03-27
 ### Changed
 - Kotlin Android extensions plugin is now disabled by default
@@ -42,7 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     that can later be applied to any sub-project
 - Common configuration can include android, dokka, jacoco, java, kotlin and publishing
 
-[Unreleased]: https://github.com/nofrills-io/gradle-multimodule/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/nofrills-io/gradle-multimodule/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/nofrills-io/gradle-multimodule/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/nofrills-io/gradle-multimodule/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/nofrills-io/gradle-multimodule/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/nofrills-io/gradle-multimodule/compare/v0.2.1...v0.3.0
