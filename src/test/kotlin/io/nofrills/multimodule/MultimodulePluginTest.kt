@@ -58,7 +58,7 @@ class MultimodulePluginTest {
     }
 
     @Test
-    fun `applies jar`() {
+    fun `applies java library plugin`() {
         val (_, p) = testProjects("jar")
         assertNotNull(p.plugins.findPlugin("java-library"))
         assertNull(p.plugins.findPlugin("com.android.application"))
