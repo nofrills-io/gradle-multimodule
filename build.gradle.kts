@@ -8,7 +8,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     id("jacoco")
-    id("com.gradle.plugin-publish") version "0.10.1"
+    id("com.gradle.plugin-publish") version "0.11.0"
 }
 
 apply(plugin = "org.jetbrains.kotlin.jvm")
