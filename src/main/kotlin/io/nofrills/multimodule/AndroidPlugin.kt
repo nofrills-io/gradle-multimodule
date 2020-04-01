@@ -102,10 +102,13 @@ abstract class AndroidPlugin : BasePlugin() {
     final override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
         project.pluginManager.apply(androidPluginId)
 
+        val javaConfig = JavaConfig()
+        multimoduleExtension.javaAction?.execute(javaConfig)
+
         project.extensions.getByType(TestedExtension::class.java).apply {
             compileOptions {
-                it.sourceCompatibility = multimoduleExtension.javaConfig.sourceCompatibility
-                it.targetCompatibility = multimoduleExtension.javaConfig.targetCompatibility
+                it.sourceCompatibility = javaConfig.sourceCompatibility
+                it.targetCompatibility = javaConfig.targetCompatibility
             }
             multimoduleExtension.androidAction?.execute(this)
         }

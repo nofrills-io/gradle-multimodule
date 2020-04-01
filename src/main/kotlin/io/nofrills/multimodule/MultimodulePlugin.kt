@@ -46,36 +46,49 @@ class MultimodulePlugin : Plugin<Project> {
 
     private fun applyToRootProject(project: Project) {
         val ext = project.extensions.create(MULTIMODULE_EXT_NAME, MultimoduleExtension::class.java, project)
-        project.gradle.projectsEvaluated {
-            val jdkVersion by lazy { ext.javaConfig.sourceCompatibility.ordinal + 1 }
-            ext.dokkaAction?.let { applyGlobalDokka(project, it, jdkVersion) }
-        }
+        applyGlobalDokka(project, ext)
     }
 
-    private fun applyGlobalDokka(project: Project, action: Action<DokkaTask>, jdkVersion: Int) {
-        project.pluginManager.apply(BasePlugin.PLUGIN_ID_DOKKA)
-        project.tasks.named("dokka", DokkaTask::class.java) { dokka ->
-            dokka.outputDirectory = File(project.buildDir, "dokka").path
-            dokka.outputFormat = DOKKA_FORMAT
-            dokka.configuration.jdkVersion = jdkVersion
+    private fun applyGlobalDokka(project: Project, ext: MultimoduleExtension) {
+        project.gradle.projectsEvaluated {
+            val action = ext.dokkaAction
+            if (action != null) {
+                project.pluginManager.apply(BasePlugin.PLUGIN_ID_DOKKA)
 
-            val kotlinProjects = project.subprojects.filter {
-                val submoduleExtension = BasePlugin.getSubmoduleExtension(it)
-                it.getKotlinPluginVersion() != null && (submoduleExtension?.dokkaAllowed?.get() ?: false)
+                val jdkVersion by lazy {
+                    val javaConfig = JavaConfig()
+                    ext.javaAction?.execute(javaConfig)
+                    javaConfig.sourceCompatibility.ordinal + 1
+                }
+
+                project.tasks.named("dokka", DokkaTask::class.java) { dokka ->
+                    dokka.outputDirectory = File(project.buildDir, "dokka").path
+                    dokka.outputFormat = DOKKA_FORMAT
+                    dokka.configuration.jdkVersion = jdkVersion
+
+                    val kotlinProjects = project.subprojects.filter {
+                        val submoduleExtension = BasePlugin.getSubmoduleExtension(it)
+                        it.getKotlinPluginVersion() != null && (submoduleExtension?.dokkaAllowed?.get() ?: false)
+                    }
+                    dokka.subProjects = kotlinProjects.map { it.name }
+
+                    action.execute(dokka)
+                }
             }
-            dokka.subProjects = kotlinProjects.map { it.name }
-            action.execute(dokka)
         }
     }
 }
 
-abstract class MultimoduleExtension(project: Project) {
+abstract class MultimoduleExtension(rootProject: Project) {
     internal var androidAction: Action<TestedExtension>? = null
     internal var dokkaAction: Action<DokkaTask>? = null
     internal var jacocoAction: Action<JacocoConfig>? = null
-    internal val javaConfig: JavaConfig = project.objects.newInstance(JavaConfig::class.java)
-    internal var kotlinConfig: KotlinConfig? = null
-    internal var publishConfig: PublishConfig? = null
+    internal var javaAction: Action<JavaConfig>? = null
+    internal var kotlinAction: Action<KotlinConfig>? = null
+    internal var publishAction: Action<PublishConfig>? = null
+
+    var project: Project = rootProject
+        internal set
 
     fun android(action: Action<TestedExtension>) {
         androidAction = action
@@ -90,19 +103,15 @@ abstract class MultimoduleExtension(project: Project) {
     }
 
     fun java(action: Action<JavaConfig>) {
-        action.execute(javaConfig)
+        javaAction = action
     }
 
     fun kotlin(action: Action<KotlinConfig>) {
-        val config = kotlinConfig ?: KotlinConfig().also { kotlinConfig = it }
-        action.execute(config)
+        kotlinAction = action
     }
 
     fun publish(action: Action<PublishConfig>) {
-        val config = publishConfig ?: PublishConfig().also {
-            publishConfig = it
-        }
-        action.execute(config)
+        publishAction = action
     }
 }
 

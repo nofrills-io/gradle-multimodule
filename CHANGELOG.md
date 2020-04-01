@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2020-04-xx
+### Added
+- `multimodule` extension has a `project` property, which can be used to access either the root project,
+    or the sub-project (when the configuration is applied to the sub-project)
+
 ## [0.4.1] - 2020-03-27
 ### Changed/Fixed
 - minimum required version of Android build tools plugin is 3.6.0 (needed for publishing configuration)

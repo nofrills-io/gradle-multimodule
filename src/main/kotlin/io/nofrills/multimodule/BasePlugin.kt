@@ -69,18 +69,22 @@ abstract class BasePlugin : Plugin<Project> {
 
     /** Create and configure Maven publications for the module. */
     protected abstract fun applyPublications(
-            project: Project,
-            publishConfig: PublishConfig,
-            publications: PublicationContainer
+        project: Project,
+        publishConfig: PublishConfig,
+        publications: PublicationContainer
     )
 
     final override fun apply(project: Project) {
         val submoduleExtension = project.extensions.create(SUBMODULE_EXT_NAME, SubmoduleExtension::class.java, project)
         val multimoduleExtension = project.rootProject.extensions.getByType(MultimoduleExtension::class.java)
+        multimoduleExtension.project = project
 
         applyPlugin(project, multimoduleExtension)
 
-        multimoduleExtension.kotlinConfig?.let { kotlinConfig ->
+        multimoduleExtension.kotlinAction?.let { kotlinAction ->
+            val kotlinConfig = KotlinConfig()
+            kotlinAction.execute(kotlinConfig)
+
             applyKotlin(project, kotlinConfig)
             if (kotlinConfig.kapt) {
                 project.pluginManager.apply(PLUGIN_ID_KOTLIN_KAPT)
@@ -121,6 +125,7 @@ abstract class BasePlugin : Plugin<Project> {
         }
 
         multimoduleExtension.jacocoAction?.let { jacocoAction ->
+            // TODO would be better to apply the plugin immediately
             project.afterEvaluate { project ->
                 if (submoduleExtension.jacocoAllowed.get()) {
                     val jacocoConfig = JacocoConfig()
@@ -130,7 +135,12 @@ abstract class BasePlugin : Plugin<Project> {
             }
         }
 
-        multimoduleExtension.publishConfig?.let { publishConfig ->
+        multimoduleExtension.publishAction?.let { publishAction ->
+            // TODO would be better to apply the plugin immediately, since it seems otherwise it's not possible to overwrite it's settings
+            // TODO add easy way for clients to obtain the publication
+            val publishConfig = PublishConfig()
+            publishAction.execute(publishConfig)
+
             project.afterEvaluate { project ->
                 if (submoduleExtension.publishAllowed.get()) {
                     project.pluginManager.apply(PLUGIN_ID_MAVEN_PUBLISH)
@@ -143,13 +153,13 @@ abstract class BasePlugin : Plugin<Project> {
     }
 
     protected fun registerPublication(
-            project: Project,
-            publishConfig: PublishConfig,
-            publications: PublicationContainer,
-            lazyDocsJarTask: Lazy<TaskProvider<Jar>>,
-            lazySourcesJarTask: Lazy<TaskProvider<Jar>>,
-            componentName: String,
-            publicationName: String
+        project: Project,
+        publishConfig: PublishConfig,
+        publications: PublicationContainer,
+        lazyDocsJarTask: Lazy<TaskProvider<Jar>>,
+        lazySourcesJarTask: Lazy<TaskProvider<Jar>>,
+        componentName: String,
+        publicationName: String
     ) {
         val docsProvider = if (publishConfig.withDocs) lazyDocsJarTask.value else null
         val sourcesProvider = if (publishConfig.withSources) lazySourcesJarTask.value else null
