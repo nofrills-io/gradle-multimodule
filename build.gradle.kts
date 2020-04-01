@@ -88,7 +88,7 @@ val check by tasks.getting(Task::class) {
 }
 
 group = "io.nofrills"
-version = "0.4.1"
+version = "0.5.0"
 
 publishing {
     repositories {

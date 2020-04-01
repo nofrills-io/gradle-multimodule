@@ -16,6 +16,7 @@
 
 package io.nofrills.multimodule
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -76,78 +77,111 @@ abstract class BasePlugin : Plugin<Project> {
 
     final override fun apply(project: Project) {
         val submoduleExtension = project.extensions.create(SUBMODULE_EXT_NAME, SubmoduleExtension::class.java, project)
-        val multimoduleExtension = project.rootProject.extensions.getByType(MultimoduleExtension::class.java)
-        multimoduleExtension.project = project
+        val multimoduleExtension = project.rootProject.extensions
+            .getByType(MultimoduleExtension::class.java)
+            .copyForProject(project)
 
         applyPlugin(project, multimoduleExtension)
 
         multimoduleExtension.kotlinAction?.let { kotlinAction ->
-            val kotlinConfig = KotlinConfig()
-            kotlinAction.execute(kotlinConfig)
-
-            applyKotlin(project, kotlinConfig)
-            if (kotlinConfig.kapt) {
-                project.pluginManager.apply(PLUGIN_ID_KOTLIN_KAPT)
-            }
-            project.configureKotlinTasks(kotlinConfig)
-            if (kotlinConfig.coroutines) {
-                project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
-                    config.withDependencies {
-                        val dep = project.dependencies.create(LIBRARY_COROUTINES_CORE) as ExternalModuleDependency
-                        dep.version(kotlinConfig.coroutinesVersion)
-                        it.add(dep)
-                    }
-                }
-            }
-
-            val kotlinVersion by lazy { project.getKotlinPluginVersion() }
-            if (kotlinConfig.stdLib) {
-                val stdLib = if (kotlinConfig.jvmTarget == "1.6") {
-                    LIBRARY_KOTLIN_STDLIB
-                } else {
-                    LIBRARY_KOTLIN_STDLIB_JDK8
-                }
-                project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
-                    config.withDependencies { dependencySet ->
-                        val dep = project.dependencies.create(stdLib) as ExternalModuleDependency
-                        kotlinVersion?.let { ver -> dep.version { it.require(ver) } }
-                        dependencySet.add(dep)
-                    }
-                }
-            }
-            if (kotlinConfig.reflect) {
-                project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
-                    config.withDependencies {
-                        it.add(project.dependencies.create("$LIBRARY_KOTLIN_REFLECT:$kotlinVersion"))
-                    }
-                }
-            }
+            performKotlinAction(project, kotlinAction)
         }
 
         multimoduleExtension.jacocoAction?.let { jacocoAction ->
-            // TODO would be better to apply the plugin immediately
-            project.afterEvaluate { project ->
-                if (submoduleExtension.jacocoAllowed.get()) {
-                    val jacocoConfig = JacocoConfig()
-                    jacocoAction.execute(jacocoConfig)
-                    applyJacoco(project, jacocoConfig)
-                }
-            }
+            performJacocoAction(project, jacocoAction, submoduleExtension)
         }
 
         multimoduleExtension.publishAction?.let { publishAction ->
-            // TODO would be better to apply the plugin immediately, since it seems otherwise it's not possible to overwrite it's settings
-            // TODO add easy way for clients to obtain the publication
-            val publishConfig = PublishConfig()
-            publishAction.execute(publishConfig)
+            performPublishAction(project, publishAction, submoduleExtension)
+        }
+    }
 
-            project.afterEvaluate { project ->
-                if (submoduleExtension.publishAllowed.get()) {
-                    project.pluginManager.apply(PLUGIN_ID_MAVEN_PUBLISH)
-                    val publishing = project.extensions.getByType(PublishingExtension::class.java)
-                    publishConfig.repositoriesAction?.let { publishing.repositories(it) }
-                    applyPublications(project, publishConfig, publishing.publications)
-                }
+    private fun performKotlinAction(project: Project, kotlinAction: Action<KotlinConfig>) {
+        val kotlinConfig = KotlinConfig()
+        kotlinAction.execute(kotlinConfig)
+
+        applyKotlin(project, kotlinConfig)
+
+        if (kotlinConfig.kapt) {
+            project.pluginManager.apply(PLUGIN_ID_KOTLIN_KAPT)
+        }
+
+        configureKotlinTasks(project, kotlinConfig)
+
+        if (kotlinConfig.coroutines) {
+            addCoroutinesLibrary(project, kotlinConfig)
+        }
+
+        val kotlinVersion by lazy { project.getKotlinPluginVersion() }
+        if (kotlinConfig.stdLib) {
+            addKotlinStdLib(project, kotlinConfig, kotlinVersion)
+        }
+        if (kotlinConfig.reflect) {
+            addKotlinReflectLibrary(project, kotlinVersion)
+        }
+    }
+
+    private fun addCoroutinesLibrary(project: Project, kotlinConfig: KotlinConfig) {
+        project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
+            config.withDependencies {
+                val dep = project.dependencies.create(LIBRARY_COROUTINES_CORE) as ExternalModuleDependency
+                dep.version(kotlinConfig.coroutinesVersion)
+                it.add(dep)
+            }
+        }
+    }
+
+    private fun addKotlinStdLib(project: Project, kotlinConfig: KotlinConfig, kotlinVersion: String?) {
+        val stdLib = if (kotlinConfig.jvmTarget == "1.6") {
+            LIBRARY_KOTLIN_STDLIB
+        } else {
+            LIBRARY_KOTLIN_STDLIB_JDK8
+        }
+        project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
+            config.withDependencies { dependencySet ->
+                val dep = project.dependencies.create(stdLib) as ExternalModuleDependency
+                kotlinVersion?.let { ver -> dep.version { it.require(ver) } }
+                dependencySet.add(dep)
+            }
+        }
+    }
+
+    private fun addKotlinReflectLibrary(project: Project, kotlinVersion: String?) {
+        project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
+            config.withDependencies {
+                it.add(project.dependencies.create("$LIBRARY_KOTLIN_REFLECT:$kotlinVersion"))
+            }
+        }
+    }
+
+    private fun performJacocoAction(
+        project: Project,
+        jacocoAction: Action<JacocoConfig>,
+        submoduleExtension: SubmoduleExtension
+    ) {
+        project.afterEvaluate { _ ->
+            if (submoduleExtension.jacocoAllowed.get()) {
+                val jacocoConfig = JacocoConfig()
+                jacocoAction.execute(jacocoConfig)
+                applyJacoco(project, jacocoConfig)
+            }
+        }
+    }
+
+    private fun performPublishAction(
+        project: Project,
+        publishAction: Action<PublishConfig>,
+        submoduleExtension: SubmoduleExtension
+    ) {
+        val publishConfig = PublishConfig()
+        publishAction.execute(publishConfig)
+
+        project.afterEvaluate { _ ->
+            if (submoduleExtension.publishAllowed.get()) {
+                project.pluginManager.apply(PLUGIN_ID_MAVEN_PUBLISH)
+                val publishing = project.extensions.getByType(PublishingExtension::class.java)
+                publishConfig.repositoriesAction?.let { publishing.repositories(it) }
+                applyPublications(project, publishConfig, publishing.publications)
             }
         }
     }
@@ -171,7 +205,7 @@ abstract class BasePlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.configureKotlinTasks(kotlinConfig: KotlinConfig) {
+    private fun configureKotlinTasks(project: Project, kotlinConfig: KotlinConfig) {
         project.tasks.withType(KotlinCompile::class.java).configureEach { kotlinCompile ->
             kotlinCompile.kotlinOptions.apply {
                 kotlinConfig.allWarningsAsErrors?.let { allWarningsAsErrors = it }

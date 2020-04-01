@@ -45,12 +45,14 @@ class MultimodulePlugin : Plugin<Project> {
     }
 
     private fun applyToRootProject(project: Project) {
-        val ext = project.extensions.create(MULTIMODULE_EXT_NAME, MultimoduleExtension::class.java, project)
-        applyGlobalDokka(project, ext)
+        project.extensions.create(MULTIMODULE_EXT_NAME, MultimoduleExtension::class.java, project)
+        applyGlobalDokka(project)
     }
 
-    private fun applyGlobalDokka(project: Project, ext: MultimoduleExtension) {
+    private fun applyGlobalDokka(project: Project) {
         project.gradle.projectsEvaluated {
+            val ext = project.extensions.getByType(MultimoduleExtension::class.java)
+
             val action = ext.dokkaAction
             if (action != null) {
                 project.pluginManager.apply(BasePlugin.PLUGIN_ID_DOKKA)
@@ -79,7 +81,7 @@ class MultimodulePlugin : Plugin<Project> {
     }
 }
 
-abstract class MultimoduleExtension(rootProject: Project) {
+open class MultimoduleExtension(p: Project) {
     internal var androidAction: Action<TestedExtension>? = null
     internal var dokkaAction: Action<DokkaTask>? = null
     internal var jacocoAction: Action<JacocoConfig>? = null
@@ -87,8 +89,18 @@ abstract class MultimoduleExtension(rootProject: Project) {
     internal var kotlinAction: Action<KotlinConfig>? = null
     internal var publishAction: Action<PublishConfig>? = null
 
-    var project: Project = rootProject
-        internal set
+    val project: Project = p
+
+    internal fun copyForProject(p: Project): MultimoduleExtension {
+        val other = MultimoduleExtension(p)
+        other.androidAction = androidAction
+        other.dokkaAction = dokkaAction
+        other.jacocoAction = jacocoAction
+        other.javaAction = javaAction
+        other.kotlinAction = kotlinAction
+        other.publishAction = publishAction
+        return other
+    }
 
     fun android(action: Action<TestedExtension>) {
         androidAction = action
