@@ -32,7 +32,7 @@ class PublishActionTests : BaseActionTest() {
                 $baseAndroidConfig
                 publish {
                     mavenPom {
-                        name.set("testCase")
+                        name.set("testCase-" + project.name)
                     }
                 }
             """.trimIndent()
@@ -52,7 +52,7 @@ class PublishActionTests : BaseActionTest() {
             """.trimIndent()
             )
             val result = p.runGradle("testCase")
-            result.assertLine("^pomName=testCase$")
+            result.assertContains("pomName=testCase-${p.name}")
         }
     }
 

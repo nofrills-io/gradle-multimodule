@@ -45,7 +45,7 @@ class MultimodulePlugin : Plugin<Project> {
     }
 
     private fun applyToRootProject(project: Project) {
-        project.extensions.create(MULTIMODULE_EXT_NAME, MultimoduleExtension::class.java, project)
+        project.extensions.create(MULTIMODULE_EXT_NAME, MultimoduleExtension::class.java)
         applyGlobalDokka(project)
     }
 
@@ -58,7 +58,7 @@ class MultimodulePlugin : Plugin<Project> {
                 project.pluginManager.apply(BasePlugin.PLUGIN_ID_DOKKA)
 
                 val jdkVersion by lazy {
-                    val javaConfig = JavaConfig()
+                    val javaConfig = JavaConfig(project)
                     ext.javaAction?.execute(javaConfig)
                     javaConfig.sourceCompatibility.ordinal + 1
                 }
@@ -81,7 +81,7 @@ class MultimodulePlugin : Plugin<Project> {
     }
 }
 
-open class MultimoduleExtension(p: Project) {
+open class MultimoduleExtension {
     internal var androidAction: Action<TestedExtension>? = null
     internal var dokkaAction: Action<DokkaTask>? = null
     internal var jacocoAction: Action<JacocoConfig>? = null
@@ -89,18 +89,10 @@ open class MultimoduleExtension(p: Project) {
     internal var kotlinAction: Action<KotlinConfig>? = null
     internal var publishAction: Action<PublishConfig>? = null
 
-    val project: Project = p
+    internal lateinit var activeProject: ThreadLocal<Project>
 
-    internal fun copyForProject(p: Project): MultimoduleExtension {
-        val other = MultimoduleExtension(p)
-        other.androidAction = androidAction
-        other.dokkaAction = dokkaAction
-        other.jacocoAction = jacocoAction
-        other.javaAction = javaAction
-        other.kotlinAction = kotlinAction
-        other.publishAction = publishAction
-        return other
-    }
+    val TestedExtension.project: Project
+        get() = activeProject.get()
 
     fun android(action: Action<TestedExtension>) {
         androidAction = action
@@ -127,7 +119,7 @@ open class MultimoduleExtension(p: Project) {
     }
 }
 
-open class JacocoConfig {
+class JacocoConfig(project: Project) : Project by project {
     internal var jacocoPluginAction: Action<JacocoPluginExtension>? = null
     internal var jacocoTaskAction: Action<JacocoReport>? = null
 
@@ -140,12 +132,12 @@ open class JacocoConfig {
     }
 }
 
-open class JavaConfig {
+class JavaConfig(project: Project) : Project by project {
     var sourceCompatibility = JavaVersion.VERSION_1_8
     var targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-open class KotlinConfig {
+class KotlinConfig(project: Project) : Project by project {
     var androidExtensions: Boolean = false
     var coroutines: Boolean = false
     var coroutinesVersion: Action<MutableVersionConstraint> = Action { it.prefer("1.3.5") }
@@ -164,7 +156,7 @@ open class KotlinConfig {
     var verbose: Boolean? = null
 }
 
-open class PublishConfig {
+class PublishConfig(project: Project) : Project by project {
     internal var mavenPomAction: Action<MavenPom>? = null
     internal var repositoriesAction: Action<RepositoryHandler>? = null
 

@@ -29,6 +29,7 @@ class JavaActionTests : BaseActionTest() {
         val (_, subProjects) = makeTestProject(
             setOf(jar), multimoduleContent = """
             java {
+                println("executing:" + project.name)
                 sourceCompatibility = JavaVersion.VERSION_1_1
                 targetCompatibility = JavaVersion.VERSION_1_2
             }
@@ -46,6 +47,7 @@ class JavaActionTests : BaseActionTest() {
             """.trimIndent()
             )
             p.runGradle("testCase")
+                .assertContains("executing:${p.name}")
                 .assertLine("^sourceCompatibility=1.1$")
                 .assertLine("^targetCompatibility=1.2$")
         }

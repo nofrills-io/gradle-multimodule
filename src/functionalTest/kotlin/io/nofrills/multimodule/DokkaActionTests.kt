@@ -52,7 +52,7 @@ class DokkaActionTests : BaseActionTest() {
             $baseAndroidConfig
             dokka {
                 configuration {
-                    moduleName = "hello"
+                    moduleName = "hello-" + project.name
                 }
             }
         """.trimIndent()
@@ -65,7 +65,7 @@ class DokkaActionTests : BaseActionTest() {
             }
         """.trimIndent()
         )
-        root.runGradle("testCase").assertLine("^hello$")
+        root.runGradle("testCase").assertContains("hello-functionalTest")
     }
 
     @Test

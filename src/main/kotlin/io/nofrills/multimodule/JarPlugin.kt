@@ -55,7 +55,7 @@ class JarPlugin : BasePlugin() {
     override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
         project.pluginManager.apply(PLUGIN_ID_JAVA_LIBRARY)
 
-        val javaConfig = JavaConfig()
+        val javaConfig = JavaConfig(project)
         multimoduleExtension.javaAction?.execute(javaConfig)
 
         project.extensions.getByType(JavaPluginExtension::class.java).apply {

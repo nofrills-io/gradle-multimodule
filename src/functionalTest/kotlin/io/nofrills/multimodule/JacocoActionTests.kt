@@ -27,7 +27,7 @@ class JacocoActionTests : BaseActionTest() {
                         toolVersion = "0.9.99"
                     }
                     jacocoTask {
-                        reports.html.destination = file("test-destination.html")
+                        reports.html.destination = file(project.name + "-test-destination.html")
                     }
                 }
             """.trimIndent()
@@ -47,7 +47,7 @@ class JacocoActionTests : BaseActionTest() {
             )
             p.runGradle("testCase")
                 .assertLine("^0.9.99$")
-                .assertLine(".*test-destination.html$")
+                .assertContains("${p.name}-test-destination.html")
         }
     }
 

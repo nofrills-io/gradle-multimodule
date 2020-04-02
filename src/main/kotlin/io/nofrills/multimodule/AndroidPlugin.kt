@@ -102,7 +102,7 @@ abstract class AndroidPlugin : BasePlugin() {
     final override fun applyPlugin(project: Project, multimoduleExtension: MultimoduleExtension) {
         project.pluginManager.apply(androidPluginId)
 
-        val javaConfig = JavaConfig()
+        val javaConfig = JavaConfig(project)
         multimoduleExtension.javaAction?.execute(javaConfig)
 
         project.extensions.getByType(TestedExtension::class.java).apply {
@@ -110,6 +110,7 @@ abstract class AndroidPlugin : BasePlugin() {
                 it.sourceCompatibility = javaConfig.sourceCompatibility
                 it.targetCompatibility = javaConfig.targetCompatibility
             }
+            multimoduleExtension.activeProject = ThreadLocal.withInitial { project }
             multimoduleExtension.androidAction?.execute(this)
         }
     }

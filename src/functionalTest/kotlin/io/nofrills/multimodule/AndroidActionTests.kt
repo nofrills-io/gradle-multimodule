@@ -55,14 +55,14 @@ class AndroidActionTests : BaseActionTest() {
             multimoduleContent = """
                 android {
                     compileSdkVersion(28)
-                    buildTypes { create("mock") }
+                    buildTypes { create("mock_" + project.name) }
                 }
             """.trimIndent()
         )
 
         androidTypes.forEach { projectType ->
             val dir = subProjects.getValue(projectType)
-            dir.runGradle("tasks", "--all").assertLine("^assembleMock ")
+            dir.runGradle("tasks", "--all").assertLine("^assembleMock_${projectType} ")
         }
     }
 }

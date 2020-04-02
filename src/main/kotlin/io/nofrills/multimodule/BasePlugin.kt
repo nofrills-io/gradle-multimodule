@@ -77,9 +77,7 @@ abstract class BasePlugin : Plugin<Project> {
 
     final override fun apply(project: Project) {
         val submoduleExtension = project.extensions.create(SUBMODULE_EXT_NAME, SubmoduleExtension::class.java, project)
-        val multimoduleExtension = project.rootProject.extensions
-            .getByType(MultimoduleExtension::class.java)
-            .copyForProject(project)
+        val multimoduleExtension = project.rootProject.extensions.getByType(MultimoduleExtension::class.java)
 
         applyPlugin(project, multimoduleExtension)
 
@@ -97,7 +95,7 @@ abstract class BasePlugin : Plugin<Project> {
     }
 
     private fun performKotlinAction(project: Project, kotlinAction: Action<KotlinConfig>) {
-        val kotlinConfig = KotlinConfig()
+        val kotlinConfig = KotlinConfig(project)
         kotlinAction.execute(kotlinConfig)
 
         applyKotlin(project, kotlinConfig)
@@ -161,7 +159,7 @@ abstract class BasePlugin : Plugin<Project> {
     ) {
         project.afterEvaluate { _ ->
             if (submoduleExtension.jacocoAllowed.get()) {
-                val jacocoConfig = JacocoConfig()
+                val jacocoConfig = JacocoConfig(project)
                 jacocoAction.execute(jacocoConfig)
                 applyJacoco(project, jacocoConfig)
             }
@@ -173,7 +171,7 @@ abstract class BasePlugin : Plugin<Project> {
         publishAction: Action<PublishConfig>,
         submoduleExtension: SubmoduleExtension
     ) {
-        val publishConfig = PublishConfig()
+        val publishConfig = PublishConfig(project)
         publishAction.execute(publishConfig)
 
         project.afterEvaluate { _ ->

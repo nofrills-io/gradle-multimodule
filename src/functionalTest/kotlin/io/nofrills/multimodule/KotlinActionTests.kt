@@ -47,7 +47,7 @@ class KotlinActionTests : BaseActionTest() {
             kotlin {
                 allWarningsAsErrors = true
                 apiVersion = "1.1"
-                freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
+                freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn", project.name)
                 jvmTarget = "1.6"
                 languageVersion = "1.0"
                 suppressWarnings = true
@@ -65,7 +65,7 @@ class KotlinActionTests : BaseActionTest() {
                     kotlinTasks.forEach {
                         check(it.kotlinOptions.allWarningsAsErrors == true)
                         check(it.kotlinOptions.apiVersion == "1.1")
-                        check(it.kotlinOptions.freeCompilerArgs == listOf("-Xopt-in=kotlin.RequiresOptIn"))
+                        check(it.kotlinOptions.freeCompilerArgs == listOf("-Xopt-in=kotlin.RequiresOptIn", "${p.name}"))
                         check(it.kotlinOptions.jvmTarget == "1.6")
                         check(it.kotlinOptions.languageVersion == "1.0")
                         check(it.kotlinOptions.suppressWarnings == true)
