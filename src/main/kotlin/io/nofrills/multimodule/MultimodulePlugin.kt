@@ -119,7 +119,7 @@ open class MultimoduleExtension {
     }
 }
 
-class JacocoConfig(project: Project) : Project by project {
+class JacocoConfig(val project: Project) {
     internal var jacocoPluginAction: Action<JacocoPluginExtension>? = null
     internal var jacocoTaskAction: Action<JacocoReport>? = null
 
@@ -132,12 +132,12 @@ class JacocoConfig(project: Project) : Project by project {
     }
 }
 
-class JavaConfig(project: Project) : Project by project {
+class JavaConfig(val project: Project) {
     var sourceCompatibility = JavaVersion.VERSION_1_8
     var targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-class KotlinConfig(project: Project) : Project by project {
+class KotlinConfig(val project: Project) {
     var androidExtensions: Boolean = false
     var coroutines: Boolean = false
     var coroutinesVersion: Action<MutableVersionConstraint> = Action { it.prefer("1.3.5") }
@@ -156,7 +156,7 @@ class KotlinConfig(project: Project) : Project by project {
     var verbose: Boolean? = null
 }
 
-class PublishConfig(project: Project) : Project by project {
+class PublishConfig(val project: Project) {
     internal var mavenPomAction: Action<MavenPom>? = null
     internal var repositoriesAction: Action<RepositoryHandler>? = null
 
