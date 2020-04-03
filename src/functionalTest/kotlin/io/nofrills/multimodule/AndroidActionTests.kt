@@ -50,7 +50,7 @@ class AndroidActionTests : BaseActionTest() {
 
     @Test
     fun `android configuration is applied`() {
-        val (_, subProjects) = makeTestProject(
+        val (rootProject, _) = makeTestProject(
             androidTypes,
             multimoduleContent = """
                 android {
@@ -60,9 +60,8 @@ class AndroidActionTests : BaseActionTest() {
             """.trimIndent()
         )
 
-        androidTypes.forEach { projectType ->
-            val dir = subProjects.getValue(projectType)
-            dir.runGradle("tasks", "--all").assertLine("^assembleMock_${projectType} ")
-        }
+        rootProject.runGradle("tasks", "--group=build", "--parallel")
+            .assertLine("^compileMock_aarSources$")
+            .assertLine("^compileMock_apkSources$")
     }
 }
