@@ -18,6 +18,7 @@ package io.nofrills.multimodule
 
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.internal.CompileOptions
 import com.android.build.gradle.internal.tasks.factory.dependsOn
 import org.gradle.api.Action
 import org.gradle.api.Project
@@ -54,8 +55,8 @@ abstract class AndroidPlugin : BasePlugin() {
 
         getBaseVariants(project).forEach { variant ->
             val jacocoReportTask = project.tasks.register(
-                "jacoco${variant.name.capitalize()}TestReport",
-                JacocoReport::class.java
+                    "jacoco${variant.name.capitalize()}TestReport",
+                    JacocoReport::class.java
             ) { jacoco ->
                 jacoco.dependsOn(project.tasks.withType(Test::class.java))
                 jacoco.executionData.setFrom(project.fileTree(project.buildDir) {
@@ -82,11 +83,9 @@ abstract class AndroidPlugin : BasePlugin() {
             project.pluginManager.apply(PLUGIN_ID_KOTLIN_ANDROID_EXTENSIONS)
         }
         project.extensions.getByType(TestedExtension::class.java).apply {
-            sourceSets {
-                it.getByName("androidTest").java.srcDir("src/androidTest/kotlin")
-                it.getByName("main").java.srcDir("src/main/kotlin")
-                it.getByName("test").java.srcDir("src/test/kotlin")
-            }
+            sourceSets.getByName("androidTest").java.srcDir("src/androidTest/kotlin")
+            sourceSets.getByName("main").java.srcDir("src/main/kotlin")
+            sourceSets.getByName("test").java.srcDir("src/test/kotlin")
         }
         if (kotlinConfig.coroutines) {
             project.configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME) { config ->
@@ -106,19 +105,19 @@ abstract class AndroidPlugin : BasePlugin() {
         multimoduleExtension.javaAction?.execute(javaConfig)
 
         project.extensions.getByType(TestedExtension::class.java).apply {
-            compileOptions {
+            compileOptions(Action<CompileOptions> {
                 it.sourceCompatibility = javaConfig.sourceCompatibility
                 it.targetCompatibility = javaConfig.targetCompatibility
-            }
+            })
             multimoduleExtension.activeProject = ThreadLocal.withInitial { project }
             multimoduleExtension.androidAction?.execute(this)
         }
     }
 
     final override fun applyPublications(
-        project: Project,
-        publishConfig: PublishConfig,
-        publications: PublicationContainer
+            project: Project,
+            publishConfig: PublishConfig,
+            publications: PublicationContainer
     ) {
         val variant = getDefaultPublishVariant(project)
         if (variant != null) {
@@ -126,11 +125,11 @@ abstract class AndroidPlugin : BasePlugin() {
             val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project, variant) }
 
             registerPublication(
-                project, publishConfig, publications,
-                lazyDocsJarTask = docsJarTaskProvider,
-                lazySourcesJarTask = sourcesJarTaskProvider,
-                componentName = getComponentNameForVariant(variant),
-                publicationName = getPublicationNameForVariant(variant)
+                    project, publishConfig, publications,
+                    lazyDocsJarTask = docsJarTaskProvider,
+                    lazySourcesJarTask = sourcesJarTaskProvider,
+                    componentName = getComponentNameForVariant(variant),
+                    publicationName = getPublicationNameForVariant(variant)
             )
         } else {
             project.logger.warn("Cannot create publication for ${project}: default publish config not found (check 'android.defaultPublishConfig' setting).")
@@ -164,12 +163,12 @@ abstract class AndroidPlugin : BasePlugin() {
             dokka.doFirst {
                 dokka.configuration.classpath = variant.javaCompileProvider.get().classpath.map { it.path }
                 variant.sourceSets.map { it.javaDirectories }
-                    .flatten()
-                    .forEach { src ->
-                        dokka.configuration.sourceRoot(Action {
-                            it.path = src.path
-                        })
-                    }
+                        .flatten()
+                        .forEach { src ->
+                            dokka.configuration.sourceRoot(Action {
+                                it.path = src.path
+                            })
+                        }
             }
         }
 

@@ -42,6 +42,8 @@ internal fun makeTestProject(
 
         """.trimIndent()
     )
+    val localPropFile = File("local.properties")
+    localPropFile.copyTo(rootDir.resolve("local.properties"))
 
     val subProjects = include.map { it to File(rootDir, it) }.toMap()
     for ((name, dir) in subProjects) {
@@ -79,7 +81,7 @@ internal fun File.failGradle(vararg runnerArgs: String): BuildResult {
 }
 
 internal fun BuildResult.assertContains(other: String): BuildResult {
-    assertTrue(output.contains(other))
+    assertTrue(output.contains(other), "Result should contain `${other}`")
     return this
 }
 

@@ -190,7 +190,7 @@ class KotlinActionTests : BaseActionTest() {
     }
 
     @Test
-    fun `applies kotlin reflect library`() {
+    fun aprl() {
         val (_, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
