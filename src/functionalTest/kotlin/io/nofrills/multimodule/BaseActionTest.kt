@@ -10,8 +10,8 @@ abstract class BaseActionTest {
         internal const val baseAndroidConfig = "android { compileSdkVersion(28) }"
     }
 
-//    @After
-//    fun tearDown() {
-//        File(FunctionalTestPath).deleteRecursively()
-//    }
+    @After
+    fun tearDown() {
+        File(FunctionalTestPath).deleteRecursively()
+    }
 }

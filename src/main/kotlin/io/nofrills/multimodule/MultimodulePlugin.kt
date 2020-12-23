@@ -27,12 +27,9 @@ import org.gradle.api.publish.maven.MavenPom
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.dokka.gradle.DokkaTask
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
-import java.io.File
 
 class MultimodulePlugin : Plugin<Project> {
     companion object {
-        private const val DOKKA_FORMAT = "html"
         private const val MULTIMODULE_EXT_NAME = "multimodule"
     }
 
@@ -50,34 +47,7 @@ class MultimodulePlugin : Plugin<Project> {
     }
 
     private fun applyGlobalDokka(project: Project) {
-        project.gradle.projectsEvaluated {
-            val ext = project.extensions.getByType(MultimoduleExtension::class.java)
-
-            val action = ext.dokkaAction
-            if (action != null) {
-                project.pluginManager.apply(BasePlugin.PLUGIN_ID_DOKKA)
-
-                val jdkVersion by lazy {
-                    val javaConfig = JavaConfig(project)
-                    ext.javaAction?.execute(javaConfig)
-                    javaConfig.sourceCompatibility.ordinal + 1
-                }
-
-                project.tasks.named("dokka", DokkaTask::class.java) { dokka ->
-                    dokka.outputDirectory = File(project.buildDir, "dokka").path
-                    dokka.outputFormat = DOKKA_FORMAT
-                    dokka.configuration.jdkVersion = jdkVersion
-
-                    val kotlinProjects = project.subprojects.filter {
-                        val submoduleExtension = BasePlugin.getSubmoduleExtension(it)
-                        it.getKotlinPluginVersion() != null && (submoduleExtension?.dokkaAllowed?.get() ?: false)
-                    }
-                    dokka.subProjects = kotlinProjects.map { it.name }
-
-                    action.execute(dokka)
-                }
-            }
-        }
+        project.pluginManager.apply(BasePlugin.PLUGIN_ID_DOKKA)
     }
 }
 
@@ -138,12 +108,11 @@ class JavaConfig(val project: Project) {
 }
 
 class KotlinConfig(val project: Project) {
-    var androidExtensions: Boolean = false
     var coroutines: Boolean = false
-    var coroutinesVersion: Action<MutableVersionConstraint> = Action { it.prefer("1.3.5") }
+    var coroutinesVersion: Action<MutableVersionConstraint> = Action { it.prefer("1.4.2") }
     var kapt: Boolean = false
+    var parcelizePlugin: Boolean = false
     var reflect: Boolean = false
-    var stdLib: Boolean = true
 
     // options corresponding to [org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions]
     var allWarningsAsErrors: Boolean? = null

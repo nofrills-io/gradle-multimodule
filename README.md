@@ -10,7 +10,7 @@ In the top-level `build.gradle` file, put the following:
 // Top-level build.gradle
 
 plugins {
-    id("io.nofrills.multimodule") version "0.2.0"
+    id("io.nofrills.multimodule") version "0.7.0"
 }
 
 multimodule {

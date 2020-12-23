@@ -92,12 +92,12 @@ class KotlinActionTests : BaseActionTest() {
     }
 
     @Test
-    fun `applies android extensions`() {
+    fun `applies kotlin parcelize extensions`() {
         val (_, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
             kotlin {
-                androidExtensions = true
+                parcelizePlugin = true
             }
         """.trimIndent()
         )
@@ -106,7 +106,7 @@ class KotlinActionTests : BaseActionTest() {
             p.resolve(BuildFile).appendText(
                 """
                 project.tasks.register("testCase") {
-                    val plugin = project.pluginManager.findPlugin("org.jetbrains.kotlin.android.extensions")
+                    val plugin = project.pluginManager.findPlugin("org.jetbrains.kotlin.plugin.parcelize")
                     println("plugin=" + plugin?.name)
                 }
             """.trimIndent()
@@ -116,7 +116,7 @@ class KotlinActionTests : BaseActionTest() {
             if (projectType == jar) {
                 result.assertLine("^plugin=null$")
             } else {
-                result.assertLine("^plugin=extensions$")
+                result.assertLine("^plugin=parcelize$")
             }
         }
     }
@@ -134,9 +134,9 @@ class KotlinActionTests : BaseActionTest() {
 
         subProjects.forEach { (projectType, p) ->
             val result = p.runGradle("dependencies")
-            result.assertContains("org.jetbrains.kotlinx:kotlinx-coroutines-core:{prefer 1.3.5}")
+            result.assertContains("org.jetbrains.kotlinx:kotlinx-coroutines-core:{prefer 1.4.2}")
             if (projectType == aar || projectType == apk) {
-                result.assertContains("org.jetbrains.kotlinx:kotlinx-coroutines-android:{prefer 1.3.5}")
+                result.assertContains("org.jetbrains.kotlinx:kotlinx-coroutines-android:{prefer 1.4.2}")
             }
         }
     }
@@ -190,7 +190,7 @@ class KotlinActionTests : BaseActionTest() {
     }
 
     @Test
-    fun aprl() {
+    fun `applies kotlin reflect`() {
         val (_, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
@@ -200,66 +200,43 @@ class KotlinActionTests : BaseActionTest() {
         """.trimIndent()
         )
 
-        val kotlinVersion = KotlinVersion.CURRENT.toString()
         subProjects.forEach { (_, p) ->
-            p.runGradle("dependencies").assertContains("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+            p.runGradle("dependencies").assertLine("org.jetbrains.kotlin:kotlin-reflect:[0-9\\.]+")
         }
     }
 
     @Test
-    fun `applies kotlin stdlib library jdk_1_6`() {
-        val (_, subProjects) = makeTestProject(
+    fun `applies kotlin stdlib library jvm target 1_6`() {
+        val (rootProject, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
             kotlin {
-                stdLib = true
                 jvmTarget = "1.6"
             }
         """.trimIndent()
         )
 
-        val kotlinVersion = KotlinVersion.CURRENT.toString()
         subProjects.forEach { (_, p) ->
             p.runGradle("dependencies")
-                .assertContains("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+                .assertLine("org.jetbrains.kotlin:kotlin-stdlib:[0-9\\.]+")
                 .assertNotContains("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         }
     }
 
     @Test
-    fun `applies kotlin stdlib library jdk_1_8`() {
+    fun `applies kotlin stdlib library jvm target 1_8`() {
         val (_, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
             kotlin {
-                stdLib = true
                 jvmTarget = "1.8"
             }
         """.trimIndent()
         )
 
-        val kotlinVersion = KotlinVersion.CURRENT.toString()
         subProjects.forEach { (_, p) ->
             p.runGradle("dependencies")
-                .assertContains("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
-        }
-    }
-
-    @Test
-    fun `skips kotlin stdlib library`() {
-        val (_, subProjects) = makeTestProject(
-            multimoduleContent = """
-            $baseAndroidConfig
-            kotlin {
-                stdLib = false
-            }
-        """.trimIndent()
-        )
-
-        subProjects.forEach { (_, p) ->
-            p.runGradle("dependencies")
-                .assertNotContains("org.jetbrains.kotlin:kotlin-stdlib")
-                .assertNotContains("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+                .assertLine("org.jetbrains.kotlin:kotlin-stdlib-jdk8:[0-9\\.]+")
         }
     }
 }

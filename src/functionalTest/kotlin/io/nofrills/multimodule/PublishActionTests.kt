@@ -103,6 +103,7 @@ class PublishActionTests : BaseActionTest() {
         val (_, subProjects) = makeTestProject(
             multimoduleContent = """
                 $baseAndroidConfig
+                dokka {}
                 kotlin {}
                 publish {
                     withDocs = true
@@ -113,10 +114,10 @@ class PublishActionTests : BaseActionTest() {
         subProjects.forEach { (projectType, p) ->
             val result = p.runGradle("tasks", "--group=documentation")
             if (projectType == jar) {
-                result.assertLine("^dokka -.*$")
+                result.assertLine("^dokka[a-zA-Z]+ -.*$")
                 result.assertLine("^dokkaJar$")
             } else {
-                result.assertLine("^dokka -.*$")
+                result.assertLine("^dokka[a-zA-Z]+ -.*$")
                 result.assertLine("^releaseDokkaJar$")
             }
         }

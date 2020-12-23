@@ -33,6 +33,11 @@ internal fun makeTestProject(
     rootDir.resolve("settings.gradle").writeText(settingsContents)
     rootDir.resolve(BuildFile).writeText(
         """
+            buildscript {
+                dependencies {
+                    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.20")
+                }
+            }
             plugins {
                 id("io.nofrills.multimodule")
             }

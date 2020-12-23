@@ -30,13 +30,15 @@ repositories {
 }
 
 dependencies {
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("com.android.tools.build:gradle", Ver.androidBuildTools)
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin", Ver.kotlin)
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8", Ver.kotlin)
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.dokka:dokka-core", Ver.dokka)
     implementation("org.jetbrains.dokka:dokka-gradle-plugin", Ver.dokka)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test", Ver.kotlin)
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit", Ver.kotlin)
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 }
 
 gradlePlugin {
@@ -67,7 +69,7 @@ gradlePlugin {
 }
 
 // Add a source set for the functional test suite
-val functionalTestSourceSet = sourceSets.create("functionalTest") {
+val functionalTestSourceSet: SourceSet = sourceSets.create("functionalTest") {
 }
 
 gradlePlugin.testSourceSets(functionalTestSourceSet)
@@ -88,7 +90,7 @@ val check by tasks.getting(Task::class) {
 }
 
 group = "io.nofrills"
-version = "0.6.0"
+version = "0.7.0"
 
 publishing {
     repositories {

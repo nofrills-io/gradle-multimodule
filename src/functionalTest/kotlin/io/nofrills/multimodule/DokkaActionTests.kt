@@ -6,71 +6,67 @@ import kotlin.test.Test
 class DokkaActionTests : BaseActionTest() {
     @Test
     fun `applies dokka but skips sub-projects`() {
-        val (root, _) = makeTestProject(
+        val (root, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
             dokka {}
         """.trimIndent()
         )
-        root.resolve(BuildFile).appendText(
-            """
-            tasks.register("testCase") {
-                val dokkaTask = project.tasks.getByName("dokka") as org.jetbrains.dokka.gradle.DokkaTask
-                println(dokkaTask.subProjects)
-            }
-        """.trimIndent()
-        )
-        root.runGradle("testCase").assertLine("^\\[]$") // sub-project is included only if it has a kotlin plugin
-        root.runGradle("tasks").assertLine("^dokka ")
+
+        root.runGradle("tasks").assertLine("^dokka[a-zA-Z]+ -")
+
+        for ((_, project) in subProjects) {
+            project.runGradle("tasks").assertNotContains("^dokka[a-zA-Z]+ -")
+        }
     }
 
     @Test
     fun `applies dokka`() {
-        val (root, _) = makeTestProject(
+        val (root, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
             dokka {}
             kotlin {}
         """.trimIndent()
         )
-        root.resolve(BuildFile).appendText(
-            """
-            tasks.register("testCase") {
-                val dokkaTask = project.tasks.getByName("dokka") as org.jetbrains.dokka.gradle.DokkaTask
-                println(dokkaTask.subProjects)
-            }
-        """.trimIndent()
-        )
-        root.runGradle("testCase").assertContains("[aar, apk, jar]")
-        root.runGradle("tasks").assertLine("^dokka ")
+
+        root.runGradle("tasks").assertLine("^dokka[a-zA-Z]+ -")
+
+        for ((_, project) in subProjects) {
+            project.runGradle("tasks").assertLine("^dokka[a-zA-Z]+ -")
+        }
     }
 
     @Test
     fun `dokka config applied`() {
-        val (root, _) = makeTestProject(
+        val (_, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
             dokka {
-                configuration {
-                    moduleName = "hello-" + project.name
+                moduleName.set("hello-" + project.name)
+            }
+            kotlin {}
+        """.trimIndent()
+        )
+
+        for ((name, project) in subProjects) {
+            project.resolve(BuildFile).appendText(
+                """
+            tasks.register("testCase") {
+                doLast {
+                    val dokkaTask = project.tasks.getByName("dokkaHtml") as org.jetbrains.dokka.gradle.DokkaTask
+                    println(dokkaTask.moduleName.get())
                 }
             }
         """.trimIndent()
-        )
-        root.resolve(BuildFile).appendText(
-            """
-            tasks.register("testCase") {
-                val dokkaTask = project.tasks.getByName("dokka") as org.jetbrains.dokka.gradle.DokkaTask
-                println(dokkaTask.configuration.moduleName)
-            }
-        """.trimIndent()
-        )
-        root.runGradle("testCase").assertContains("hello-functionalTest")
+            )
+            project.runGradle("testCase").assertContains("hello-$name")
+        }
     }
 
     @Test
     fun `dokka not allowed`() {
-        val (root, _) = makeTestProject(
+        val (root, subProjects) = makeTestProject(
             multimoduleContent = """
             $baseAndroidConfig
             dokka {}
@@ -78,14 +74,9 @@ class DokkaActionTests : BaseActionTest() {
         """.trimIndent(),
             submoduleContent = "dokkaAllowed.set(false)"
         )
-        root.resolve(BuildFile).appendText(
-            """
-            tasks.register("testCase") {
-                val dokkaTask = project.tasks.getByName("dokka") as org.jetbrains.dokka.gradle.DokkaTask
-                println(dokkaTask.subProjects)
-            }
-        """.trimIndent()
-        )
-        root.runGradle("testCase").assertLine("^\\[]$")
+
+        for ((_, project) in subProjects) {
+            project.runGradle("tasks").assertNotContains("^dokka[a-zA-Z]+ -")
+        }
     }
 }

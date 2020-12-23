@@ -28,8 +28,6 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
-import org.jetbrains.dokka.gradle.DokkaTask
-import java.io.File
 
 class JarPlugin : BasePlugin() {
     override fun applyJacoco(project: Project, jacocoConfig: JacocoConfig) {
@@ -85,17 +83,11 @@ class JarPlugin : BasePlugin() {
     }
 
     private fun getDokkaJarTaskProvider(project: Project): TaskProvider<Jar> {
-        project.pluginManager.apply(PLUGIN_ID_DOKKA)
-
-        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokka ->
-            dokka.group = "documentation"
-            dokka.outputDirectory = File(project.buildDir, "dokka").path
-            dokka.outputFormat = DOKKA_FORMAT
-        }
+        val dokkaTasks = project.tasks.named("dokkaJavadoc")
 
         return project.tasks.register("dokkaJar", Jar::class.java) { jar ->
             jar.group = "documentation"
-            jar.from(dokkaTaskProvider.get())
+            jar.from(dokkaTasks)
             jar.archiveClassifier.set("javadoc")
         }
     }

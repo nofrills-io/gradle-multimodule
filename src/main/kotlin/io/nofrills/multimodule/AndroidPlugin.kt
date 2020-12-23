@@ -18,9 +18,7 @@ package io.nofrills.multimodule
 
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.BaseVariant
-import com.android.build.gradle.internal.CompileOptions
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.plugins.JavaBasePlugin.CHECK_TASK_NAME
@@ -33,9 +31,6 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoReport
-import org.jetbrains.dokka.gradle.DokkaTask
-import java.io.File
-import java.util.concurrent.Callable
 
 abstract class AndroidPlugin : BasePlugin() {
     protected abstract val androidPluginId: String
@@ -55,8 +50,8 @@ abstract class AndroidPlugin : BasePlugin() {
 
         getBaseVariants(project).forEach { variant ->
             val jacocoReportTask = project.tasks.register(
-                    "jacoco${variant.name.capitalize()}TestReport",
-                    JacocoReport::class.java
+                "jacoco${variant.name.capitalize()}TestReport",
+                JacocoReport::class.java
             ) { jacoco ->
                 jacoco.dependsOn(project.tasks.withType(Test::class.java))
                 jacoco.executionData.setFrom(project.fileTree(project.buildDir) {
@@ -79,8 +74,8 @@ abstract class AndroidPlugin : BasePlugin() {
 
     final override fun applyKotlin(project: Project, kotlinConfig: KotlinConfig) {
         project.pluginManager.apply(PLUGIN_ID_KOTLIN_ANDROID)
-        if (kotlinConfig.androidExtensions) {
-            project.pluginManager.apply(PLUGIN_ID_KOTLIN_ANDROID_EXTENSIONS)
+        if (kotlinConfig.parcelizePlugin) {
+            project.pluginManager.apply(PLUGIN_ID_KOTLIN_PARCELIZE)
         }
         project.extensions.getByType(TestedExtension::class.java).apply {
             sourceSets.getByName("androidTest").java.srcDir("src/androidTest/kotlin")
@@ -105,19 +100,19 @@ abstract class AndroidPlugin : BasePlugin() {
         multimoduleExtension.javaAction?.execute(javaConfig)
 
         project.extensions.getByType(TestedExtension::class.java).apply {
-            compileOptions(Action<CompileOptions> {
+            compileOptions {
                 it.sourceCompatibility = javaConfig.sourceCompatibility
                 it.targetCompatibility = javaConfig.targetCompatibility
-            })
+            }
             multimoduleExtension.activeProject = ThreadLocal.withInitial { project }
             multimoduleExtension.androidAction?.execute(this)
         }
     }
 
     final override fun applyPublications(
-            project: Project,
-            publishConfig: PublishConfig,
-            publications: PublicationContainer
+        project: Project,
+        publishConfig: PublishConfig,
+        publications: PublicationContainer
     ) {
         val variant = getDefaultPublishVariant(project)
         if (variant != null) {
@@ -125,11 +120,11 @@ abstract class AndroidPlugin : BasePlugin() {
             val sourcesJarTaskProvider = lazy { getSourcesJarTaskProvider(project, variant) }
 
             registerPublication(
-                    project, publishConfig, publications,
-                    lazyDocsJarTask = docsJarTaskProvider,
-                    lazySourcesJarTask = sourcesJarTaskProvider,
-                    componentName = getComponentNameForVariant(variant),
-                    publicationName = getPublicationNameForVariant(variant)
+                project, publishConfig, publications,
+                lazyDocsJarTask = docsJarTaskProvider,
+                lazySourcesJarTask = sourcesJarTaskProvider,
+                componentName = getComponentNameForVariant(variant),
+                publicationName = getPublicationNameForVariant(variant)
             )
         } else {
             project.logger.warn("Cannot create publication for ${project}: default publish config not found (check 'android.defaultPublishConfig' setting).")
@@ -150,31 +145,10 @@ abstract class AndroidPlugin : BasePlugin() {
     }
 
     private fun getDokkaJarTaskProvider(project: Project, variant: BaseVariant): TaskProvider<Jar> {
-        project.pluginManager.apply(PLUGIN_ID_DOKKA)
-
-        val dokkaTaskProvider = project.tasks.named(TASK_NAME_DOKKA, DokkaTask::class.java) { dokka ->
-            dokka.group = "documentation"
-            dokka.configuration.kotlinTasks(Callable { emptyList<Any>() })
-            dokka.outputDirectory = File(project.buildDir, "dokka").path
-            dokka.outputFormat = DOKKA_FORMAT
-            dokka.disableAutoconfiguration = true
-            dokka.dependsOn(dokka.defaultKotlinTasks())
-
-            dokka.doFirst {
-                dokka.configuration.classpath = variant.javaCompileProvider.get().classpath.map { it.path }
-                variant.sourceSets.map { it.javaDirectories }
-                        .flatten()
-                        .forEach { src ->
-                            dokka.configuration.sourceRoot(Action {
-                                it.path = src.path
-                            })
-                        }
-            }
-        }
-
+        val dokkaTasks = project.tasks.named("dokkaJavadoc")
         return project.tasks.register("${variant.name}DokkaJar", Jar::class.java) { jar ->
             jar.group = "documentation"
-            jar.from(dokkaTaskProvider.get())
+            jar.from(dokkaTasks)
             jar.archiveClassifier.set("javadoc")
         }
     }

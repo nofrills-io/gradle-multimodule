@@ -18,7 +18,6 @@ package io.nofrills.multimodule
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.api.BaseVariant
-import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
 
 class ApkPlugin : AndroidPlugin() {
